@@ -87,9 +87,9 @@ class SSLForwardServerProcessThread implements Runnable {
 					readCount - headerLen - 2);
 
 			String destHost = null;
-			for(String header : requestHeaders) {
-				log.info(header);
-				if(header.toUpperCase().startsWith("HOST: ")) {
+			for (String header : requestHeaders) {
+				log.debug(header);
+				if (header.toUpperCase().startsWith("HOST: ")) {
 					destHost = header.split(":\\s")[1];
 				}
 			}
@@ -97,6 +97,11 @@ class SSLForwardServerProcessThread implements Runnable {
 			destHost = Config.getIns().getIp(destHost);
 
 			int destPort = 443;
+			if (Boolean.parseBoolean(Config.getIns().getValue(
+					"ptp.local.https.ashttp", "false"))) {
+				destPort = 80;
+				log.info("https used as http in remote");
+			}
 			log.info("destPort: " + destPort);
 
 			HttpProxy httpProxy = new HttpProxy(destHost, destPort, in, out);
