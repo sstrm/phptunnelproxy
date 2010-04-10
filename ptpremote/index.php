@@ -20,14 +20,20 @@ textarea {
 </style>
 </head>
 <body>
-<form name="form" action="test.php"
+<form name="form" action="index.php"
 	method="post"><input name="request_data" type="text" /> <input
 	name="dest_host" type="text" /> <input name="dest_port" type="text" />
 <input name="submit" type="submit" /></form>
 <?php
 $dest_host = $_POST['dest_host'];
 $dest_port = $_POST['dest_port'];
-if($dest_port == 443) $dest_host="ssl://".$dest_host;
+if($dest_port == 443) {
+	if(in_array('ssl', stream_get_transports())) {
+		$dest_host="ssl://".$dest_host;
+	} else {
+		$dest_port=80;
+	}
+}
 $request = base64_decode($_POST['request_data']);
 
 if(empty($dest_host)) $dest_host="twitter.com";
