@@ -6,7 +6,13 @@ if($_SERVER['REQUEST_METHOD']=='GET') {
 
 $dest_host = $_POST['dest_host'];
 $dest_port = $_POST['dest_port'];
-if($dest_port == 443) $dest_host="ssl://".$dest_host;
+if($dest_port == 443) {
+	if(in_array('ssl', stream_get_transports())) {
+		$dest_host="ssl://".$dest_host;
+	} else {
+		$dest_port=80;
+	}
+}
 $request = base64_decode($_POST['request_data']);
 
 header("Content-type: application/octet-stream");
