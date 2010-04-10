@@ -1,0 +1,29 @@
+#! /bin/sh
+if [ -z "$PTP_HOME" -o ! -d "$PTP_HOME" ] ; then
+  ## resolve links - $0 may be a link to ant's home
+  PRG="$0"
+  progname=`basename "$0"`
+
+  # need this for relative symlinks
+  while [ -h "$PRG" ] ; do
+    ls=`ls -ld "$PRG"`
+    link=`expr "$ls" : '.*-> \(.*\)$'`
+    if expr "$link" : '/.*' > /dev/null; then
+    PRG="$link"
+    else
+    PRG=`dirname "$PRG"`"/$link"
+    fi
+  done
+
+  PTP_HOME=`dirname "$PRG"`/..
+
+  # make it fully qualified
+  PTP_HOME=`cd "$PTP_HOME" > /dev/null && pwd`
+fi
+
+cd $PTP_HOME
+for jar in `ls $PTP_HOME/lib/*.jar`
+do
+      PTP_JAR="$PTP_JAR:""$jar"
+done 
+java -cp $PTP_JAR ptp.LocalServer %*
