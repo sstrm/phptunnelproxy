@@ -1,0 +1,43 @@
+2010-04-10 13:04:04,234  INFO (ptp.local.HttpProxy:88) - destPath: /
+2010-04-10 13:04:04,265  INFO (ptp.local.HttpProxy:115) - destHost: www.yahoo.com
+2010-04-10 13:04:04,265  INFO (ptp.local.HttpProxy:116) - destPort: 80
+2010-04-10 13:04:04,265  INFO (ptp.local.HttpProxy:36) - http://t.xiaoxx.net/ptpremote/index.php
+2010-04-10 13:04:04,281  INFO (ptp.local.HttpProxy:45) - request_data=R0VUIC8gSFRUUC8xLjENCkhvc3Q6IHd3dy55YWhvby5jb20NClVzZXItQWdlbnQ6IE1vemlsbGEvNS4wIChXaW5kb3dzOyBVOyBXaW5kb3dzIE5UIDUuMTsgZW4tVVM7IHJ2OjEuOS4yLjMpIEdlY2tvLzIwMTAwNDAxIEZpcmVmb3gvMy42LjMgKC5ORVQgQ0xSIDMuNS4zMDcyOSkNCkFjY2VwdDogdGV4dC9odG1sLGFwcGxpY2F0aW9uL3hodG1sK3htbCxhcHBsaWNhdGlvbi94bWw7cT0wLjksKi8qO3E9MC44DQpBY2NlcHQtTGFuZ3VhZ2U6IGVuLXVzLGVuO3E9MC41DQpBY2NlcHQtRW5jb2Rpbmc6IGd6aXAsZGVmbGF0ZQ0KQWNjZXB0LUNoYXJzZXQ6IElTTy04ODU5LTEsdXRmLTg7cT0wLjcsKjtxPTAuNw0KQ29va2llOiBCPThpOXU5aWQ1b3BpdGomYj00JmQ9UExJc1FXeHBZRUtHYm9IWl9qcHhiX3Q2dkp5SU0yVEdKTEp6dFEtLSZzPTc1Jmk9VV9SVFV6S2pyZks3Q3ZJYjF6SVo7IGNuYT1jZG9UQk1BeWh3b0NBUVIvMjl0aTNTMmk7IGxzdGF0X2JjXzYxMTI5Nz0yMzE1MTIwNjIwMTAzODc4NzM1OyBGPWE9X3ZEaWJTTU12VFBGRUVjVmV3SVJzX3pEQ3ZDM25VOFB3Mnd4M1U4WFZ2dlBRelczX01veXpKM0dBYi5PZi56SWlhbjFvWWstJmI9YjlXSzsgUEg9Zm49LkpfXzNTUFRTZ0I0MGxDaHVFSzV0Z3MtJmw9ZW4tUEg7IEZQUz1kbDsgRlBDSzI9QWdNR2FDOHVCL05Md0FFUUFucExFQUJtYlNBQVlJSWdBRlJ3SUFBOU1BPT07IGZwYz1kPWI5WUFyWlBMQXE5UjNGSmtXOFNWSXk3cmFOWU12VTZqalIxS1oxb0lRTEUyTVpXeTRXd0wzclFIdTVheVVRNXd0M1Nwa2IubnFobFk1S3A0RFN4endEOE9zWmtNMVE3dmZka0h6R2hIejRwcmRvSncxa1dIMUdFU0VZY0dJOWtodmF6Tnk2dkxZMnp1SFNOaHBxY0dXNzZzRlRjcF9WdlUxajN1U0RxZFAyZ1U2ZE8yUmRubDV5UWtmNF9qWVAzbWEyWFhnZlktJnY9MjsgX191dG1hPTIwODY3OTcwNi4xNjQ0NzkyNzMxLjEyNzAzNjIwMjIuMTI3MDM2MjAyMi4xMjcwMzYyMDIyLjE7IF9fdXRtej0yMDg2Nzk3MDYuMTI3MDM2MjAyMi4xLjEudXRtY3NyPShkaXJlY3QpfHV0bWNjbj0oZGlyZWN0KXx1dG1jbWQ9KG5vbmUpOyBDUlpZOWFtPXQ9MTsgZnB0PWQ9WlFUN2FKRFBlOXlFRDFhZy5ObnFJTUl1WXQ2cWlTczB2UV9nMmFUQUROUG9oeHpsdi45cVpLSzAuNWFEdkVBeXJhcURsdEhoZDVPLnJFVU9jNlNkQ2tiV0w0NFFIVmxXYkdBa200R0FJUVl3azE5aGt0bGs5eWdQcFljY3o3am0yRERPOVBjTGwwSi4xTHBXZ0xFOEtHd1gyekRmWDBNYmdBUzZ1ampLcTNKUzJZOEVMRVBxS0tRbnNLaE1CUmpiQVB6N0RPZ1ltNjl4V0M3ckc1Ymd4Tk1PNWp6UXZLaTRRZU03cTBKbEpJMERzSWI3NnJyQXNmaXZ6eEo2SXR5dVY5T0I0Ry45WTY5MXJkTE1vb2NUZUdwR1U4Y2Z6YVNSQlNtcEI4VDdkS1NfQ09zMTZrZXFWb2VsTkZNVThxR2NJSjZMeGZBZ2J6Uzd4ZGt6d2tPaWJEb0VTSDM4M3dOdC5JMXI5bVBTWHJmMkhIbk53RnFiQ0x3eGkxUWpZcVBRdXFOVkFjWEJXVTBudmZ0QlhwR3RrdUktJnY9MTsgZnBjX3M9ZD1DZXJ0WjdfUkxOY2ZnNFlaSVhUdVhVczBiZ25aTHV2QXRUc3JGWXVQLkF2ZVhDOHZiRGNBSHB6RHUxWnpSd1BDbTlLWEd6ZWlBV3JrdGROMDVuZXgzRnZ2V0poZ21lN3ZXenE5UzMwdWhLb3h4NjN5RExKYjhINjI2eXJSNHMyYndZVmFBc3M3ME1kd3RfRVRva2pKaXYyQV9GSER5aTV5RllzWFc3UUxGM3FSc2NsQlVyZlRoUmswNW55eGNlSEFfc0w3UHE4b25EUkhGM0JmbEVQcGZrWVEwSlFxYm1oM2RZeGNBQllseUpsTFlkejgyOHZxRUdMZlFRWDcxSVZrV21xVDZ3VnEyWWpoUWE5UFFnUXhnZ0VZamIyYmF4UWVfMG5mcVZ5Y0hoZXdfWHdrNGlMLm1FbFQ3ejVENV9rWUZmUlpqM0ptLkw0TEZPd1NrU1JoZHJubkpjNC0mdj0yDQpDb25uZWN0aW9uOiBjbG9zZQ0KDQo=&dest_host=www.yahoo.com&dest_port=80
+2010-04-10 13:27:24,015  INFO (ptp.LocalProxyProcessThread:125) - destHost: www.facebook.com
+2010-04-10 13:27:24,031  INFO (ptp.LocalProxyProcessThread:130) - destPort: 80
+2010-04-10 13:27:24,031  INFO (ptp.local.HttpProxy:88) - destPath: /
+2010-04-10 13:27:24,031  INFO (ptp.local.HttpProxy:36) - http://t.xiaoxx.net/ptpremote/index.php
+2010-04-10 13:28:52,156  INFO (ptp.LocalProxyProcessThread:125) - destHost: www.facebook.com
+2010-04-10 13:28:52,156  INFO (ptp.LocalProxyProcessThread:130) - destPort: 80
+2010-04-10 13:28:52,156  INFO (ptp.local.HttpProxy:88) - destPath: /
+2010-04-10 13:28:52,156  INFO (ptp.local.HttpProxy:36) - http://t.xiaoxx.net/ptpremote/index.php
+2010-04-10 13:28:55,031  INFO (ptp.local.HttpProxy:117) - done!
+2010-04-10 13:32:33,593  INFO (ptp.LocalProxyProcessThread:125) - destHost: www.facebook.com
+2010-04-10 13:32:33,593  INFO (ptp.LocalProxyProcessThread:130) - destPort: 80
+2010-04-10 13:32:33,593  INFO (ptp.local.HttpProxy:88) - destPath: /
+2010-04-10 13:32:33,593  INFO (ptp.local.HttpProxy:36) - http://ptp.cn.nf/remote.php
+2010-04-10 13:32:35,671  INFO (ptp.local.HttpProxy:117) - done!
+2010-04-10 13:35:20,234  INFO (ptp.LocalProxyProcessThread:125) - destHost: www.facebook.com
+2010-04-10 13:35:20,234  INFO (ptp.LocalProxyProcessThread:130) - destPort: 80
+2010-04-10 13:35:20,234  INFO (ptp.local.HttpProxy:90) - destPath: /
+2010-04-10 13:35:20,234  INFO (ptp.local.HttpProxy:36) - remotePhp: http://t.xiaoxx.net/ptpremote/remote.php
+2010-04-10 13:35:24,843  INFO (ptp.local.HttpProxy:119) - done!
+2010-04-10 13:36:22,750 ERROR (ptp.local.SSLForwardServer:47) - etc\ptp.jks (The system cannot find the file specified)
+java.io.FileNotFoundException: etc\ptp.jks (The system cannot find the file specified)
+	at java.io.FileInputStream.open(Native Method)
+	at java.io.FileInputStream.<init>(FileInputStream.java:106)
+	at java.io.FileInputStream.<init>(FileInputStream.java:66)
+	at ptp.local.SSLForwardServer.run(SSLForwardServer.java:32)
+	at java.lang.Thread.run(Thread.java:619)
+2010-04-10 13:38:25,406  INFO (ptp.LocalProxyProcessThread:125) - destHost: www.facebook.com
+2010-04-10 13:38:25,421  INFO (ptp.LocalProxyProcessThread:130) - destPort: 80
+2010-04-10 13:38:25,421  INFO (ptp.local.HttpProxy:90) - destPath: /
+2010-04-10 13:38:25,421  INFO (ptp.local.HttpProxy:36) - remotePhp: http://ptp.cn.nf/remote.php
+2010-04-10 13:38:27,468  INFO (ptp.local.HttpProxy:119) - done!
+2010-04-10 13:52:04,437  INFO (ptp.LocalProxy:26) - local proxy server started on port: 8888
+2010-04-10 13:52:04,875  INFO (ptp.local.SSLForwardServer:42) - local ssl server started on port: 8889
+2010-04-10 13:52:12,828  INFO (ptp.LocalProxyProcessThread:127) - destHost: www.facebook.com
+2010-04-10 13:52:12,828  INFO (ptp.LocalProxyProcessThread:132) - destPort: 80
+2010-04-10 13:52:12,828  INFO (ptp.local.HttpProxy:90) - destPath: /
+2010-04-10 13:52:12,828  INFO (ptp.local.HttpProxy:36) - remotePhp: http://t.xiaoxx.net/ptpremote/remote.php
+2010-04-10 13:52:16,375  INFO (ptp.local.HttpProxy:119) - done!

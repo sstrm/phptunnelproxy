@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="ptplocal" default="dist" basedir=".">
+	<property file="build.properties"/>
+	<property name="app.name" value="${ant.project.name}" />
+	<property name="app.version" value="0.0.0" />
+	<property name="dist.dir" value="${basedir}${file.separator}dist" />
+	<property name="bin.dir" value="${basedir}${file.separator}bin" />
+	<property name="doc.dir" value="${basedir}${file.separator}doc" />
+	<property name="src.dir" value="${basedir}${file.separator}src" />
+	<property name="src.main.dir" value="${src.dir}${file.separator}main/java" />
+	<property name="src.test.dir" value="${src.dir}${file.separator}test/java" />
+	<property name="conf.main.dir" value="${src.dir}${file.separator}main/conf" />
+	<property name="conf.test.dir" value="${src.dir}${file.separator}test/conf" />
+	<property name="lib.dir" value="${basedir}${file.separator}lib" />
+	<property name="etc.dir" value="${basedir}${file.separator}etc" />
+	<property name="shell.dir" value="${basedir}${file.separator}shell" />
+
+	<path id="build.classpath">
+		<fileset file="${lib.dir}${file.separator}*.jar">
+			<exclude name="*sources*"/>
+		</fileset>
+		<pathelement path="${bin.dir}" />
+	</path>
+	
+	<path id="ant-task.classpath">
+		<fileset file="${lib.dir}${file.separator}ant-task${file.separator}*.jar">
+			<exclude name="*sources*"/>
+		</fileset>
+	</path>
+
+	<taskdef name="eclipse" classname="com.xmxsuperstar.ant.task.EclipseProjectTask">
+		<classpath refid="ant-task.classpath" />
+	</taskdef>
+
+	<target name="clean">
+		<delete dir="${bin.dir}" />
+		<delete dir="${dist.dir}" />
+	</target>
+
+	<target name="compile" description="compile all java sources">
+		<mkdir dir="${bin.dir}" />
+		<javac destdir="${bin.dir}" srcdir="${src.main.dir}" debug="on" source="1.6" target="1.6" encoding="UTF-8">
+			<classpath refid="build.classpath" />
+		</javac>
+		<copy todir="${bin.dir}">
+			<fileset dir="${conf.main.dir}" />
+		</copy>
+	</target>
+
+	<target name="jar" depends="compile"
+		description="build a jar package">
+		<mkdir dir="${dist.dir}" />
+		<jar destfile="${dist.dir}/${app.name}-${app.version}.jar" basedir="${bin.dir}">
+			<fileset file="${basedir}${file.separator}LICENSE.txt" />
+			<fileset file="${basedir}${file.separator}README.txt" />
+		</jar>
+	</target>
+
+	<target name="src-eclipse-pkg" description="build a source package for eclipse source attachment">
+		<mkdir dir="${dist.dir}" />
+		<jar destfile="${dist.dir}/${app.name}-${app.version}-sources.jar">
+			<fileset dir="${src.main.dir}"/>
+			<fileset dir="${src.test.dir}"/>
+			<fileset dir="${conf.main.dir}"/>
+			<fileset dir="${conf.test.dir}"/>
+			<fileset file="${basedir}${file.separator}LICENSE.txt" />
+			<fileset file="${basedir}${file.separator}README.txt" />
+		</jar>
+	</target>
+
+	<target name="src-dist-pkg" description="build a source package for distributing">
+		<mkdir dir="${dist.dir}" />
+		<zip destfile="${dist.dir}/${app.name}-${app.version}-src.zip">
+			<zipfileset dir="${basedir}" prefix="${app.name}-${app.version}">
+				<exclude name="dist/"/>
+				<exclude name="bin/"/>
+				<exclude name=".*/"/>
+			</zipfileset>
+		</zip>
+	</target>
+	
+	<target name="bin-dist-pkg" depends="jar" description="build a binary package for distribution">
+		<mkdir dir="${dist.dir}" />
+		<zip destfile="${dist.dir}${file.separator}${app.name}-${app.version}-bin.zip">
+			<zipfileset prefix="${app.name}-${app.version}/lib" dir="${lib.dir}">
+				<exclude name="ant-task/" />
+				<exclude name="junit*.jar" />
+				<exclude name="*sources*" />
+			</zipfileset>
+			<zipfileset fullpath="${app.name}-${app.version}/lib/${app.name}-${app.version}.jar" file="${dist.dir}${file.separator}${app.name}-${app.version}.jar" />
+			<zipfileset prefix="${app.name}-${app.version}/bin" dir="${shell.dir}" />
+			<zipfileset prefix="${app.name}-${app.version}/docs" dir="${doc.dir}" />
+			<zipfileset prefix="${app.name}-${app.version}/etc" dir="${etc.dir}" />
+			<zipfileset prefix="${app.name}-${app.version}" file="${basedir}${file.separator}LICENSE.txt" />
+			<zipfileset prefix="${app.name}-${app.version}" file="${basedir}${file.separator}README.txt" />
+		</zip>
+	</target>
+
+	<target name="dist" description="build binary jar package and source package" depends="jar, src-eclipse-pkg, src-dist-pkg, bin-dist-pkg"/>
+
+	<target name="eclipse" description="create project files for importing into eclipse">
+		<eclipse />
+	</target>
+
+	<target name="clean-all" depends="clean">
+		<delete file="${basedir}${file.separator}.project" />
+		<delete file="${basedir}${file.separator}.classpath" />
+		<delete dir="${basedir}${file.separator}.settings" />
+	</target>
+
+</project>
