@@ -86,7 +86,13 @@ class SSLForwardServerProcessThread implements Runnable {
 			byte[] requestBody = ByteArrayUtil.trim(buff, headerLen + 2,
 					readCount - headerLen - 2);
 
-			String destHost = requestHeaders[1].split(":\\s")[1];
+			String destHost = null;
+			for(String header : requestHeaders) {
+				log.info(header);
+				if(header.toUpperCase().startsWith("HOST: ")) {
+					destHost = header.split(":\\s")[1];
+				}
+			}
 			log.info("destHost: " + destHost);
 			destHost = Config.getIns().getIp(destHost);
 
