@@ -39,7 +39,7 @@
 
 	<target name="compile" description="compile all java sources">
 		<mkdir dir="${bin.dir}" />
-		<javac destdir="${bin.dir}" srcdir="${src.main.dir}" debug="on" source="1.6" target="1.6" encoding="UTF-8">
+		<javac destdir="${bin.dir}" includeantruntime="false" srcdir="${src.main.dir}" debug="on" source="1.6" target="1.6" encoding="UTF-8">
 			<classpath refid="build.classpath" />
 		</javac>
 		<copy todir="${bin.dir}">
