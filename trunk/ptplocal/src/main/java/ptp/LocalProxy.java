@@ -33,6 +33,7 @@ public class LocalProxy implements Runnable {
 				Thread localProxyProcessThread = new Thread(
 						new LocalProxyProcessThread(browserSocket));
 				localProxyProcessThread.start();
+				log.info("thread count: " + Thread.activeCount());
 			}
 		} catch (IOException e) {
 			log.error(e.getMessage(), e);
@@ -148,7 +149,7 @@ class LocalProxyProcessThread implements Runnable {
 			inFromBrowser.close();
 			outToBrowser.close();
 			browserSocket.close();
-
+			log.info("local proxy end!");
 		} catch (IOException e) {
 			log.error(e.getMessage(), e);
 		} finally {

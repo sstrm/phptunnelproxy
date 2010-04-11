@@ -116,6 +116,7 @@ class SSLForwardServerProcessThread implements Runnable {
 			in.close();
 			out.close();
 			sslSocket.close();
+			log.info("ssl forward end!");
 		} catch (IOException e) {
 			log.error(e.getMessage(), e);
 		}
