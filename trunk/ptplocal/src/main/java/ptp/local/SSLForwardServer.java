@@ -36,7 +36,7 @@ public class SSLForwardServer implements Runnable {
 			sc.init(kmf.getKeyManagers(), null, null);
 			SSLServerSocketFactory ssf = sc.getServerSocketFactory();
 			int localSslPort = Integer.parseInt(Config.getIns().getValue(
-					"ptp.local.ssl.port", "8888"));
+					"ptp.local.ssl.port", "8889"));
 			SSLServerSocket sslServerSocket = (SSLServerSocket) ssf
 					.createServerSocket(localSslPort);
 			log.info("local ssl server started on port: " + localSslPort);
@@ -106,9 +106,16 @@ class SSLForwardServerProcessThread implements Runnable {
 
 			HttpProxy httpProxy = new HttpProxy(destHost, destPort, in, out);
 			httpProxy.proces(requestHeaders, requestBody);
-
+			
+			try {
+				Thread.sleep(200);
+			} catch (InterruptedException e) {
+				log.fatal(e.getMessage(), e);
+			}
+			
 			in.close();
 			out.close();
+			sslSocket.close();
 		} catch (IOException e) {
 			log.error(e.getMessage(), e);
 		}
