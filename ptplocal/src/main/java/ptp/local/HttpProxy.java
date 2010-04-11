@@ -117,6 +117,6 @@ public class HttpProxy {
 				newRequestHeaderData.length, requestBody.length);
 
 		requestRemote(newRequestData, destHost, destPort, outToBrowser);
-		log.info("done!");
+		log.info("http proxy done!");
 	}
 }
