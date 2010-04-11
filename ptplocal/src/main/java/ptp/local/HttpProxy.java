@@ -104,7 +104,8 @@ public class HttpProxy {
 		newRequestHeaderString.append("Connection: close").append("\r\n");
 		newRequestHeaderString.append("\r\n");
 
-		// System.out.println(newRequestString);
+		log.debug("Request Headers: ");
+		log.debug(newRequestHeaderString);
 
 		byte[] newRequestHeaderData = newRequestHeaderString.toString()
 				.getBytes("US-ASCII");

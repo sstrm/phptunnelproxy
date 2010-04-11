@@ -27,6 +27,9 @@ public class LocalProxy implements Runnable {
 
 			while (true) {
 				Socket browserSocket = sSocket.accept();
+				log.info("visit from browser: "
+						+ browserSocket.getInetAddress().getHostAddress() + " "
+						+ browserSocket.getPort());
 				Thread localProxyProcessThread = new Thread(
 						new LocalProxyProcessThread(browserSocket));
 				localProxyProcessThread.start();
@@ -66,9 +69,13 @@ class LocalProxyProcessThread implements Runnable {
 
 			if (ByteArrayUtil.toString(buff, 0, 7).equalsIgnoreCase("CONNECT")) {
 				// https proxy
+				log.debug("connect read cout: " + readCount);
+				log.debug("connect request: "
+						+ ByteArrayUtil.toString(buff, 0, readCount));
+
 				Socket sslSocket = new Socket("127.0.0.1", 8889);
-				DataInputStream sslIn = new DataInputStream(sslSocket
-						.getInputStream());
+				DataInputStream sslIn = new DataInputStream(
+						new BufferedInputStream(sslSocket.getInputStream()));
 				DataOutputStream sslOut = new DataOutputStream(sslSocket
 						.getOutputStream());
 
@@ -76,35 +83,37 @@ class LocalProxyProcessThread implements Runnable {
 						.getBytes("US-ASCII"));
 				outToBrowser.write("Proxy-agent: Netscape-Proxy/1.1\r\n"
 						.getBytes("US-ASCII"));
+				outToBrowser.write("Proxy-Connection: close\r\n"
+						.getBytes("US-ASCII"));
 				outToBrowser.write("\r\n".getBytes("US-ASCII"));
 
 				outToBrowser.flush();
-				for (int i = 0; i < 2; i++) {
-					if ((readCount = inFromBrowser.read(buff, 0, buffSize)) != -1) {
+
+				while (true) {
+					if (browserSocket.isClosed()) {
+						break;
+					}
+					if (inFromBrowser.available() > 0
+							&& ((readCount = inFromBrowser.read(buff)) > 0)) {
 						sslOut.write(buff, 0, readCount);
 						sslOut.flush();
-						log.debug("b to s " + (i + 1) + " " + readCount);
+					} else if (readCount < 0) {
+						break;
 					}
+
 					try {
-						Thread.sleep(1000);
-					} catch (InterruptedException e) {
-						log.fatal(e.getMessage(), e);
+						sslSocket.sendUrgentData(0);
+					} catch (IOException e) {
+						break;
 					}
-					if ((readCount = sslIn.read(buff, 0, buffSize)) != -1) {
+					if (sslIn.available() > 0
+							&& ((readCount = sslIn.read(buff)) > 0)) {
 						outToBrowser.write(buff, 0, readCount);
 						outToBrowser.flush();
-						log.debug("s to b " + (i + 1) + " " + readCount);
+					} else if (readCount < 0) {
+						break;
 					}
-				}
-				if ((readCount = inFromBrowser.read(buff, 0, buffSize)) != -1) {
-					sslOut.write(buff, 0, readCount);
-					sslOut.flush();
-					log.debug("b req " + " " + readCount);
-				}
-				while ((readCount = sslIn.read(buff, 0, buffSize)) != -1) {
-					outToBrowser.write(buff, 0, readCount);
-					outToBrowser.flush();
-					log.debug("s to b res " + readCount);
+
 				}
 
 				sslOut.close();
