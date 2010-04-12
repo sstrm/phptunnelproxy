@@ -1,4 +1,4 @@
-@echo on
+@echo off
 if "%PTP_HOME%"=="" set PTP_HOME=%~dp0
 
 if '%1=='## goto ENVSET
