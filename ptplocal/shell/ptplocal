@@ -15,7 +15,7 @@ if [ -z "$PTP_HOME" -o ! -d "$PTP_HOME" ] ; then
     fi
   done
 
-  PTP_HOME=`dirname "$PRG"`/..
+  PTP_HOME=`dirname "$PRG"`
 
   # make it fully qualified
   PTP_HOME=`cd "$PTP_HOME" > /dev/null && pwd`
@@ -26,4 +26,4 @@ for jar in `ls $PTP_HOME/lib/*.jar`
 do
       PTP_JAR="$PTP_JAR:""$jar"
 done 
-java -cp $PTP_JAR ptp.LocalServer %*
+java -cp $PTP_JAR ptp.ui.GUILauncher %*

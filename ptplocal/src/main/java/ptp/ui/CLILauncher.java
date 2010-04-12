@@ -1,16 +1,17 @@
-package ptp;
+package ptp.ui;
 
 import org.apache.log4j.PropertyConfigurator;
 
+import ptp.local.LocalProxyServer;
 import ptp.local.SSLForwardServer;
 
-public class LocalServer {
+public class CLILauncher {
 	public static void main(String[] args) {
-		PropertyConfigurator.configure(LocalServer.class
+		PropertyConfigurator.configure(CLILauncher.class
 				.getResource("/etc/log4j.properties"));
 		Thread sslForwarderThread = new Thread(new SSLForwardServer());
 		sslForwarderThread.start();
-		Thread localProxyThread = new Thread(new LocalProxy());
+		Thread localProxyThread = new Thread(new LocalProxyServer());
 		localProxyThread.start();
 	}
 
