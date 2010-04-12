@@ -1,4 +1,4 @@
-package ptp;
+package ptp.local;
 
 import java.io.BufferedInputStream;
 import java.io.DataInputStream;
@@ -6,15 +6,22 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketTimeoutException;
 import java.net.URL;
 
 import org.apache.log4j.Logger;
 
-import ptp.local.HttpProxy;
+import ptp.Config;
 import ptp.util.ByteArrayUtil;
 
-public class LocalProxy implements Runnable {
-	private static Logger log = Logger.getLogger(LocalProxy.class);
+public class LocalProxyServer implements Runnable {
+	private static Logger log = Logger.getLogger(LocalProxyServer.class);
+	
+	private boolean isStopped = false;
+	
+	public synchronized void stopServer() {
+		isStopped = true;
+	}
 
 	@Override
 	public void run() {
@@ -23,18 +30,28 @@ public class LocalProxy implements Runnable {
 			int localProxyPort = Integer.parseInt(Config.getIns().getValue(
 					"ptp.local.proxy.port", "8888"));
 			sSocket = new ServerSocket(localProxyPort);
+			sSocket.setSoTimeout(1000);
 			log.info("local proxy server started on port: " + localProxyPort);
 
-			while (true) {
-				Socket browserSocket = sSocket.accept();
-				log.info("visit from browser: "
-						+ browserSocket.getInetAddress().getHostAddress() + " "
-						+ browserSocket.getPort());
-				Thread localProxyProcessThread = new Thread(
-						new LocalProxyProcessThread(browserSocket));
-				localProxyProcessThread.start();
-				log.info("thread count: " + Thread.activeCount());
+			while (!isStopped) {
+				Socket browserSocket = null;
+				try {
+					browserSocket = sSocket.accept();
+				} catch(SocketTimeoutException ste) {
+					continue;
+				}
+				if(browserSocket != null) {
+					log.info("visit from browser: "
+							+ browserSocket.getInetAddress().getHostAddress() + " "
+							+ browserSocket.getPort());
+					Thread localProxyProcessThread = new Thread(
+							new LocalProxyProcessThread(browserSocket));
+					localProxyProcessThread.start();
+					log.info("thread count: " + Thread.activeCount());
+				}
 			}
+			sSocket.close();
+			log.info("stop local proxy server");
 		} catch (IOException e) {
 			log.error(e.getMessage(), e);
 		}

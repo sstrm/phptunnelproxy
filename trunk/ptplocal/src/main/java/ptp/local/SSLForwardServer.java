@@ -5,6 +5,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.net.SocketTimeoutException;
 import java.security.KeyStore;
 
 import javax.net.ssl.KeyManagerFactory;
@@ -20,6 +21,12 @@ import ptp.util.ByteArrayUtil;
 
 public class SSLForwardServer implements Runnable {
 	private static Logger log = Logger.getLogger(SSLForwardServer.class);
+	
+	private boolean isStopped = false;
+	
+	public synchronized void stopServer() {
+		isStopped = true;
+	}
 
 	@Override
 	public void run() {
@@ -39,13 +46,24 @@ public class SSLForwardServer implements Runnable {
 					"ptp.local.ssl.port", "8889"));
 			SSLServerSocket sslServerSocket = (SSLServerSocket) ssf
 					.createServerSocket(localSslPort);
+			sslServerSocket.setSoTimeout(1000);
 			log.info("local ssl server started on port: " + localSslPort);
-			while (true) {
-				SSLSocket sslSocket = (SSLSocket) sslServerSocket.accept();
-				Thread sslForwardServerProcessThread = new Thread(
-						new SSLForwardServerProcessThread(sslSocket));
-				sslForwardServerProcessThread.start();
+			
+			while (!isStopped) {
+				SSLSocket sslSocket = null;
+				try {
+					sslSocket = (SSLSocket) sslServerSocket.accept();
+				} catch(SocketTimeoutException ste) {
+					continue;
+				}
+				if(sslSocket != null) {
+					Thread sslForwardServerProcessThread = new Thread(
+							new SSLForwardServerProcessThread(sslSocket));
+					sslForwardServerProcessThread.start();
+				}
 			}
+			sslServerSocket.close();
+			log.info("stop ssl server");
 		} catch (Exception e) {
 			log.error(e.getMessage(), e);
 		}
