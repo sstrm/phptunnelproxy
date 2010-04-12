@@ -22,12 +22,10 @@ import javax.swing.UIManager;
 import javax.swing.UIManager.LookAndFeelInfo;
 
 import org.apache.log4j.Logger;
-import org.apache.log4j.PropertyConfigurator;
-
 import ptp.local.LocalProxyServer;
 import ptp.local.SSLForwardServer;
 
-public class GUILauncher {
+public class GUILauncher extends Launcher {
 	private static Logger log = Logger.getLogger(GUILauncher.class);
 
 	private static Thread sslForwarderThread;
@@ -39,8 +37,6 @@ public class GUILauncher {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		PropertyConfigurator.configure(CLILauncher.class
-				.getResource("/etc/log4j.properties"));
 		createUI();
 	}
 

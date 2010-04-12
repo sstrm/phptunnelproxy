@@ -72,9 +72,12 @@
 		<mkdir dir="${dist.dir}" />
 		<zip destfile="${dist.dir}/${app.name}-${app.version}-src.zip">
 			<zipfileset dir="${basedir}" prefix="${app.name}-${app.version}">
-				<exclude name="dist/"/>
-				<exclude name="bin/"/>
-				<exclude name=".*/"/>
+				<exclude name="dist/" />
+				<exclude name="bin/" />
+				<exclude name=".*/" />
+				<exclude name="build.properties" />
+				<exclude name="etc/log4j.properties" />
+				<exclude name="*log*" />
 			</zipfileset>
 		</zip>
 	</target>
@@ -90,7 +93,9 @@
 			<zipfileset fullpath="${app.name}-${app.version}/lib/${app.name}-${app.version}.jar" file="${dist.dir}${file.separator}${app.name}-${app.version}.jar" />
 			<zipfileset prefix="${app.name}-${app.version}" dir="${shell.dir}" />
 			<zipfileset prefix="${app.name}-${app.version}/docs" dir="${doc.dir}" />
-			<zipfileset prefix="${app.name}-${app.version}/etc" dir="${etc.dir}" />
+			<zipfileset prefix="${app.name}-${app.version}/etc" dir="${etc.dir}" >
+				<exclude name="log4j.properties" />
+			</zipfileset>
 			<zipfileset prefix="${app.name}-${app.version}" file="${basedir}${file.separator}LICENSE.txt" />
 			<zipfileset prefix="${app.name}-${app.version}" file="${basedir}${file.separator}README.txt" />
 		</zip>
