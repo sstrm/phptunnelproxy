@@ -22,6 +22,8 @@ import javax.swing.UIManager;
 import javax.swing.UIManager.LookAndFeelInfo;
 
 import org.apache.log4j.Logger;
+
+import ptp.Config;
 import ptp.local.LocalProxyServer;
 import ptp.local.SSLForwardServer;
 
@@ -127,7 +129,8 @@ public class GUILauncher extends Launcher {
 				JPanel messagePanel = new JPanel();
 				messagePanel.setLayout(new BoxLayout(messagePanel,
 						BoxLayout.Y_AXIS));
-				JLabel versionLabel = new JLabel("PHP Tunnel Proxy Local");
+				JLabel versionLabel = new JLabel("PHP Tunnel Proxy Local "
+						+ Config.getIns().getVersion());
 				JLabel linkLabel = new JLabel(
 						"<html>"
 								+ "<a href=\"http://code.google.com/p/phptunnelproxy/\">"

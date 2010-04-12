@@ -1,30 +1,30 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project name="ptplocal" default="dist" basedir=".">
-	<property file="build.properties"/>
+	<property file="build.properties" />
 	<property name="app.name" value="${ant.project.name}" />
 	<property name="app.version" value="0.0.0" />
-	<property name="dist.dir" value="${basedir}${file.separator}dist" />
-	<property name="bin.dir" value="${basedir}${file.separator}bin" />
-	<property name="doc.dir" value="${basedir}${file.separator}doc" />
-	<property name="src.dir" value="${basedir}${file.separator}src" />
-	<property name="src.main.dir" value="${src.dir}${file.separator}main/java" />
-	<property name="src.test.dir" value="${src.dir}${file.separator}test/java" />
-	<property name="conf.main.dir" value="${src.dir}${file.separator}main/conf" />
-	<property name="conf.test.dir" value="${src.dir}${file.separator}test/conf" />
-	<property name="lib.dir" value="${basedir}${file.separator}lib" />
-	<property name="etc.dir" value="${basedir}${file.separator}etc" />
-	<property name="shell.dir" value="${basedir}${file.separator}shell" />
+	<property name="dist.dir" value="${basedir}/dist" />
+	<property name="bin.dir" value="${basedir}/bin" />
+	<property name="doc.dir" value="${basedir}/doc" />
+	<property name="src.dir" value="${basedir}/src" />
+	<property name="src.main.dir" value="${src.dir}/main/java" />
+	<property name="src.test.dir" value="${src.dir}/test/java" />
+	<property name="conf.main.dir" value="${src.dir}/main/conf" />
+	<property name="conf.test.dir" value="${src.dir}/test/conf" />
+	<property name="lib.dir" value="${basedir}/lib" />
+	<property name="etc.dir" value="${basedir}/etc" />
+	<property name="shell.dir" value="${basedir}/shell" />
 
 	<path id="build.classpath">
-		<fileset file="${lib.dir}${file.separator}*.jar">
-			<exclude name="*sources*"/>
+		<fileset file="${lib.dir}/*.jar">
+			<exclude name="*sources*" />
 		</fileset>
 		<pathelement path="${bin.dir}" />
 	</path>
-	
+
 	<path id="ant-task.classpath">
-		<fileset file="${lib.dir}${file.separator}ant-task${file.separator}*.jar">
-			<exclude name="*sources*"/>
+		<fileset file="${lib.dir}/ant-task/*.jar">
+			<exclude name="*sources*" />
 		</fileset>
 	</path>
 
@@ -32,39 +32,51 @@
 		<classpath refid="ant-task.classpath" />
 	</taskdef>
 
+	<taskdef name="conf" classname="com.xmxsuperstar.ant.task.ConfTask">
+		<classpath refid="ant-task.classpath" />
+	</taskdef>
+
 	<target name="clean">
 		<delete dir="${bin.dir}" />
 		<delete dir="${dist.dir}" />
+		<delete file="${conf.main.dir}/etc/app.properties" />
 	</target>
 
-	<target name="compile" description="compile all java sources">
+	<target name="conf">
+		<conf vm="${conf.main.dir}/etc/vm/app.properties.vm" destPath="${conf.main.dir}/etc/app.properties" propPath="${basedir}/build.properties" />
+	</target>
+
+	<target name="compile" description="compile all java sources" depends="conf">
 		<mkdir dir="${bin.dir}" />
 		<javac destdir="${bin.dir}" includeantruntime="false" srcdir="${src.main.dir}" debug="on" source="1.6" target="1.6" encoding="UTF-8">
 			<classpath refid="build.classpath" />
 		</javac>
 		<copy todir="${bin.dir}">
-			<fileset dir="${conf.main.dir}" />
+			<fileset dir="${conf.main.dir}" >
+				<exclude name="etc/vm/" />
+			</fileset>
 		</copy>
 	</target>
 
-	<target name="jar" depends="compile"
-		description="build a jar package">
+	<target name="jar" depends="compile" description="build a jar package">
 		<mkdir dir="${dist.dir}" />
 		<jar destfile="${dist.dir}/${app.name}-${app.version}.jar" basedir="${bin.dir}">
-			<fileset file="${basedir}${file.separator}LICENSE.txt" />
-			<fileset file="${basedir}${file.separator}README.txt" />
+			<fileset file="${basedir}/LICENSE.txt" />
+			<fileset file="${basedir}/README.txt" />
 		</jar>
 	</target>
 
 	<target name="src-eclipse-pkg" description="build a source package for eclipse source attachment">
 		<mkdir dir="${dist.dir}" />
 		<jar destfile="${dist.dir}/${app.name}-${app.version}-sources.jar">
-			<fileset dir="${src.main.dir}"/>
-			<fileset dir="${src.test.dir}"/>
-			<fileset dir="${conf.main.dir}"/>
-			<fileset dir="${conf.test.dir}"/>
-			<fileset file="${basedir}${file.separator}LICENSE.txt" />
-			<fileset file="${basedir}${file.separator}README.txt" />
+			<fileset dir="${src.main.dir}" />
+			<fileset dir="${src.test.dir}" />
+			<fileset dir="${conf.main.dir}" >
+				<exclude name="etc/app.properties" />
+			</fileset>
+			<fileset dir="${conf.test.dir}" />
+			<fileset file="${basedir}/LICENSE.txt" />
+			<fileset file="${basedir}/README.txt" />
 		</jar>
 	</target>
 
@@ -78,39 +90,40 @@
 				<exclude name="build.properties" />
 				<exclude name="etc/log4j.properties" />
 				<exclude name="*log*" />
+				<exclude name="**/etc/app.properties" />
 			</zipfileset>
 		</zip>
 	</target>
-	
+
 	<target name="bin-dist-pkg" depends="jar" description="build a binary package for distribution">
 		<mkdir dir="${dist.dir}" />
-		<zip destfile="${dist.dir}${file.separator}${app.name}-${app.version}-bin.zip">
+		<zip destfile="${dist.dir}/${app.name}-${app.version}-bin.zip">
 			<zipfileset prefix="${app.name}-${app.version}/lib" dir="${lib.dir}">
 				<exclude name="ant-task/" />
 				<exclude name="junit*.jar" />
 				<exclude name="*sources*" />
 			</zipfileset>
-			<zipfileset fullpath="${app.name}-${app.version}/lib/${app.name}-${app.version}.jar" file="${dist.dir}${file.separator}${app.name}-${app.version}.jar" />
+			<zipfileset fullpath="${app.name}-${app.version}/lib/${app.name}-${app.version}.jar" file="${dist.dir}/${app.name}-${app.version}.jar" />
 			<zipfileset prefix="${app.name}-${app.version}" dir="${shell.dir}" />
 			<zipfileset prefix="${app.name}-${app.version}/docs" dir="${doc.dir}" />
-			<zipfileset prefix="${app.name}-${app.version}/etc" dir="${etc.dir}" >
+			<zipfileset prefix="${app.name}-${app.version}/etc" dir="${etc.dir}">
 				<exclude name="log4j.properties" />
 			</zipfileset>
-			<zipfileset prefix="${app.name}-${app.version}" file="${basedir}${file.separator}LICENSE.txt" />
-			<zipfileset prefix="${app.name}-${app.version}" file="${basedir}${file.separator}README.txt" />
+			<zipfileset prefix="${app.name}-${app.version}" file="${basedir}/LICENSE.txt" />
+			<zipfileset prefix="${app.name}-${app.version}" file="${basedir}/README.txt" />
 		</zip>
 	</target>
 
-	<target name="dist" description="build binary jar package and source package" depends="jar, src-eclipse-pkg, src-dist-pkg, bin-dist-pkg"/>
+	<target name="dist" description="build binary jar package and source package" depends="jar, src-eclipse-pkg, src-dist-pkg, bin-dist-pkg" />
 
 	<target name="eclipse" description="create project files for importing into eclipse">
 		<eclipse />
 	</target>
 
 	<target name="clean-all" depends="clean">
-		<delete file="${basedir}${file.separator}.project" />
-		<delete file="${basedir}${file.separator}.classpath" />
-		<delete dir="${basedir}${file.separator}.settings" />
+		<delete file="${basedir}/.project" />
+		<delete file="${basedir}/.classpath" />
+		<delete dir="${basedir}/.settings" />
 	</target>
 
 </project>
