@@ -13,11 +13,14 @@ import java.util.Locale;
 import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JComponent;
+import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
 import javax.swing.UIManager;
 import javax.swing.UIManager.LookAndFeelInfo;
 
@@ -91,8 +94,33 @@ public class GUILauncher extends Launcher {
 				.getResource("/res/tray-on.png"));
 		final ImageIcon offImgIcon = new ImageIcon(JXTrayIcon.class
 				.getResource("/res/tray-off.png"));
+		final ImageIcon logImgIcon = new ImageIcon(JXTrayIcon.class
+				.getResource("/res/log.png"));
 		final ImageIcon infoImgIcon = new ImageIcon(JXTrayIcon.class
 				.getResource("/res/info.png"));
+
+		JTextArea logMessageTextArea = new JTextArea();
+		logMessageTextArea.setEditable(false);
+		JScrollPane logMessageScrollTextAreas = new JScrollPane(
+				logMessageTextArea);
+		logMessageScrollTextAreas
+				.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+		logMessageScrollTextAreas
+				.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+		final JFrame logWindow = new JFrame("Log");
+		logWindow.setVisible(false);
+		logWindow.setSize(600, 400);
+		logWindow.setLocationRelativeTo(null);
+		logWindow.setIconImage(logImgIcon.getImage());
+		logWindow.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
+		logWindow.add(logMessageScrollTextAreas);
+
+		JTextAreaAppender guiAppender = (JTextAreaAppender) Logger
+				.getRootLogger().getAppender("gui");
+		if (guiAppender != null) {
+			guiAppender.setTextArea(logMessageTextArea);
+			guiAppender.setMaxEntries(100);
+		}
 
 		final JXTrayIcon tray = new JXTrayIcon(offImgIcon.getImage());
 
@@ -119,6 +147,21 @@ public class GUILauncher extends Launcher {
 		});
 
 		popupMenu.add(switchItem);
+
+		final JMenuItem logItem = new JMenuItem("Log", new ImageIcon(
+				JXTrayIcon.class.getResource("/res/log.png")));
+		logItem.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+
+				if(!logWindow.isVisible()) {
+					logWindow.setVisible(true);
+				}
+				
+			}
+		});
+		popupMenu.add(logItem);
 
 		final JMenuItem aboutItem = new JMenuItem("About", new ImageIcon(
 				JXTrayIcon.class.getResource("/res/about.png")));
