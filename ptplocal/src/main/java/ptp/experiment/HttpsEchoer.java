@@ -10,7 +10,7 @@ import javax.net.ssl.*;
 
 public class HttpsEchoer {
 	public static void main(String[] args) {
-		String ksName = "ptp.jks";
+		String ksName = "etc/ptp.jks";
 		char ksPass[] = "phptunnelproxykspass".toCharArray();
 		char ctPass[] = "phptunnelproxyctpass".toCharArray();
 		try {

@@ -58,5 +58,9 @@ public class Config {
 	public String getVersion() {
 		return appProp.getProperty("app.version", "0.0.0");
 	}
+	
+	public String getCompileDate() {
+		return appProp.getProperty("app.compile.time", "2012-12-21 00:00");
+	}
 
 }
