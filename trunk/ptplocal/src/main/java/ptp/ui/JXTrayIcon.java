@@ -20,6 +20,8 @@ import javax.swing.event.PopupMenuListener;
 public class JXTrayIcon extends TrayIcon {
 
 	private static JDialog dialog;
+	private boolean canPopup = true;
+	
 	static {
 		dialog = new JDialog((Frame) null, "TrayDialog");
 		dialog.setUndecorated(true);
@@ -55,7 +57,7 @@ public class JXTrayIcon extends TrayIcon {
 	}
 
 	private void showJPopupMenu(MouseEvent e) {
-		if (e.isPopupTrigger() && menu != null) {
+		if (e.isPopupTrigger() && menu != null && canPopup) {
 			Dimension size = menu.getPreferredSize();
 			dialog.setLocation(e.getX(), e.getY() - size.height);
 			dialog.setVisible(true);
@@ -75,5 +77,9 @@ public class JXTrayIcon extends TrayIcon {
 		}
 		this.menu = menu;
 		menu.addPopupMenuListener(popupListener);
+	}
+	
+	public void setCanPopup(boolean canPopup) {
+		this.canPopup = canPopup;
 	}
 }
