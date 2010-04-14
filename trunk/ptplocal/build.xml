@@ -32,29 +32,27 @@
 		<classpath refid="ant-task.classpath" />
 	</taskdef>
 
-	<taskdef name="conf" classname="com.xmxsuperstar.ant.task.ConfTask">
-		<classpath refid="ant-task.classpath" />
-	</taskdef>
-
 	<target name="clean">
 		<delete dir="${bin.dir}" />
 		<delete dir="${dist.dir}" />
 		<delete file="${conf.main.dir}/etc/app.properties" />
 	</target>
 
-	<target name="conf">
-		<conf vm="${conf.main.dir}/etc/vm/app.properties.vm" destPath="${conf.main.dir}/etc/app.properties" propPath="${basedir}/build.properties" />
+	<target name="pre-compile">
+		<propertyfile file="${conf.main.dir}/etc/app.properties" >
+			<entry  key="app.version" value="${app.version}"/>
+			<entry  key="app.compile.time" type="date" value="now" pattern="yyyy-MM-dd HH:mm"/>
+		</propertyfile>
+
 	</target>
 
-	<target name="compile" description="compile all java sources" depends="conf">
+	<target name="compile" description="compile all java sources" depends="pre-compile">
 		<mkdir dir="${bin.dir}" />
 		<javac destdir="${bin.dir}" includeantruntime="false" srcdir="${src.main.dir}" debug="on" source="1.6" target="1.6" encoding="UTF-8">
 			<classpath refid="build.classpath" />
 		</javac>
 		<copy todir="${bin.dir}">
-			<fileset dir="${conf.main.dir}" >
-				<exclude name="etc/vm/" />
-			</fileset>
+			<fileset dir="${conf.main.dir}" />
 		</copy>
 	</target>
 

@@ -23,7 +23,6 @@ import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.UIManager;
-import javax.swing.UIManager.LookAndFeelInfo;
 
 import org.apache.log4j.Logger;
 
@@ -79,15 +78,10 @@ public class GUILauncher extends Launcher {
 	}
 
 	public static void createUI() {
-
-		for (LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
-			if ("Windows".equals(info.getName())) {
-				try {
-					UIManager.setLookAndFeel(info.getClassName());
-				} catch (Exception e) {
-					log.error(e.getMessage(), e);
-				}
-			}
+		try {
+			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+		} catch (Exception e) {
+			log.error(e.getMessage(), e);
 		}
 
 		JComponent.setDefaultLocale(new Locale(""));
@@ -103,7 +97,8 @@ public class GUILauncher extends Launcher {
 
 		JTextArea logMessageTextArea = new JTextArea();
 		logMessageTextArea.setEditable(false);
-		logMessageTextArea.setFont(new Font(Config.getIns().getValue("ptp.local.gui.log.font", Font.MONOSPACED), Font.PLAIN, 12));
+		logMessageTextArea.setFont(new Font(Config.getIns().getValue(
+				"ptp.local.gui.log.font", Font.MONOSPACED), Font.PLAIN, 12));
 		JScrollPane logMessageScrollTextAreas = new JScrollPane(
 				logMessageTextArea);
 		logMessageScrollTextAreas
@@ -182,7 +177,8 @@ public class GUILauncher extends Launcher {
 				messagePanel.setLayout(new BoxLayout(messagePanel,
 						BoxLayout.Y_AXIS));
 				JLabel versionLabel = new JLabel("PHP Tunnel Proxy Local "
-						+ Config.getIns().getVersion());
+						+ Config.getIns().getVersion() + " "
+						+ Config.getIns().getCompileDate());
 				JLabel linkLabel = new JLabel(
 						"<html>"
 								+ "<a href=\"http://code.google.com/p/phptunnelproxy/\">"
