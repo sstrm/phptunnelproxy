@@ -43,6 +43,7 @@ public class GUILauncher extends Launcher {
 	 */
 	public static void main(String[] args) {
 		createUI();
+		logSysProps();
 	}
 
 	public static void startServer() {
