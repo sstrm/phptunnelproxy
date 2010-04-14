@@ -69,9 +69,7 @@
 		<jar destfile="${dist.dir}/${app.name}-${app.version}-sources.jar">
 			<fileset dir="${src.main.dir}" />
 			<fileset dir="${src.test.dir}" />
-			<fileset dir="${conf.main.dir}" >
-				<exclude name="etc/app.properties" />
-			</fileset>
+			<fileset dir="${conf.main.dir}" />
 			<fileset dir="${conf.test.dir}" />
 			<fileset file="${basedir}/LICENSE.txt" />
 			<fileset file="${basedir}/README.txt" />
