@@ -3,6 +3,7 @@ package ptp.ui;
 import java.awt.AWTException;
 import java.awt.Cursor;
 import java.awt.Desktop;
+import java.awt.Font;
 import java.awt.SystemTray;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -78,6 +79,7 @@ public class GUILauncher extends Launcher {
 	}
 
 	public static void createUI() {
+
 		for (LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
 			if ("Windows".equals(info.getName())) {
 				try {
@@ -101,13 +103,14 @@ public class GUILauncher extends Launcher {
 
 		JTextArea logMessageTextArea = new JTextArea();
 		logMessageTextArea.setEditable(false);
+		logMessageTextArea.setFont(new Font(Config.getIns().getValue("ptp.local.gui.log.font", Font.MONOSPACED), Font.PLAIN, 12));
 		JScrollPane logMessageScrollTextAreas = new JScrollPane(
 				logMessageTextArea);
 		logMessageScrollTextAreas
 				.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		logMessageScrollTextAreas
 				.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-		final JFrame logWindow = new JFrame("Log");
+		final JFrame logWindow = new JFrame("PHP Tunnel Log");
 		logWindow.setVisible(false);
 		logWindow.setSize(600, 400);
 		logWindow.setLocationRelativeTo(null);
@@ -119,7 +122,6 @@ public class GUILauncher extends Launcher {
 				.getRootLogger().getAppender("gui");
 		if (guiAppender != null) {
 			guiAppender.setTextArea(logMessageTextArea);
-			guiAppender.setMaxEntries(100);
 		}
 
 		final JXTrayIcon tray = new JXTrayIcon(offImgIcon.getImage());
@@ -127,7 +129,8 @@ public class GUILauncher extends Launcher {
 		// create pop up menu
 		final JPopupMenu popupMenu = new JPopupMenu();
 		final JMenuItem switchItem = new JMenuItem("Start", onImgIcon);
-		switchItem.addActionListener(new ActionListener() {
+
+		ActionListener switchAction = new ActionListener() {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -142,9 +145,10 @@ public class GUILauncher extends Launcher {
 					switchItem.setIcon(onImgIcon);
 					tray.setImage(offImgIcon.getImage());
 				}
-
 			}
-		});
+		};
+
+		switchItem.addActionListener(switchAction);
 
 		popupMenu.add(switchItem);
 
@@ -155,10 +159,15 @@ public class GUILauncher extends Launcher {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 
-				if(!logWindow.isVisible()) {
+				if (!logWindow.isVisible()) {
+					logWindow.setExtendedState(JFrame.NORMAL);
 					logWindow.setVisible(true);
+					logWindow.toFront();
+				} else {
+					logWindow.setExtendedState(JFrame.NORMAL);
+					logWindow.toFront();
 				}
-				
+
 			}
 		});
 		popupMenu.add(logItem);
@@ -200,9 +209,10 @@ public class GUILauncher extends Launcher {
 				messagePanel.add(versionLabel);
 				messagePanel.add(linkLabel);
 
+				tray.setCanPopup(false);
 				JOptionPane.showMessageDialog(null, messagePanel, "About",
 						JOptionPane.INFORMATION_MESSAGE, infoImgIcon);
-
+				tray.setCanPopup(true);
 			}
 		});
 
@@ -220,6 +230,8 @@ public class GUILauncher extends Launcher {
 		popupMenu.add(exitItem);
 
 		tray.setJPopupMenu(popupMenu);
+		tray.addActionListener(switchAction);
+		tray.setToolTip("PHP Tunnel Proxy Local");
 		try {
 			SystemTray.getSystemTray().add(tray);
 		} catch (AWTException e) {

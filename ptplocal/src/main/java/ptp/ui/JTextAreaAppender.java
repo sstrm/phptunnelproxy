@@ -8,6 +8,8 @@ import org.apache.log4j.AppenderSkeleton;
 import org.apache.log4j.Logger;
 import org.apache.log4j.spi.LoggingEvent;
 
+import ptp.Config;
+
 public class JTextAreaAppender extends AppenderSkeleton {
 
 	protected JTextArea textArea;
@@ -45,7 +47,8 @@ public class JTextAreaAppender extends AppenderSkeleton {
 	public JTextAreaAppender(JTextArea textArea, int maxEntries) {
 
 		this.entries = 0;
-		this.maxEntries = maxEntries;
+		this.maxEntries = Integer.parseInt(Config.getIns().getValue(
+				"ptp.local.gui.entries.max", "100"));
 
 		setTextArea(textArea);
 	}
