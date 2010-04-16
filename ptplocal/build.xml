@@ -47,7 +47,7 @@
 			<arg value="${basedir}"/>  
 			<arg value="-n"/> 
 		</exec>
-		<propertyregex property="app.svn.version" input="${_app.svn.version}" regexp="(\d+)M?:?(\d+)?" select="\2"/>
+		<propertyregex property="app.svn.version" input="${_app.svn.version}" regexp="(\d*:){0,1}(\d+)M?S?P?" select="\2"/>
 		<property name="build.version" value="${app.version}.${app.svn.version}"/>
 		<propertyfile file="${conf.main.dir}/etc/app.properties" >
 			<entry  key="build.version" value="${build.version}"/>
