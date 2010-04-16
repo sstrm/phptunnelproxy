@@ -56,7 +56,7 @@ public class Config {
 	}
 	
 	public String getVersion() {
-		return appProp.getProperty("app.version", "0.0.0");
+		return appProp.getProperty("build.version", "0.0.0");
 	}
 	
 	public String getCompileDate() {
