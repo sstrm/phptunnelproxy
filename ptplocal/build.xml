@@ -88,8 +88,8 @@
 
 	<target name="src-dist-pkg" description="build a source package for distributing">
 		<mkdir dir="${dist.dir}" />
-		<zip destfile="${dist.dir}/${app.name}-${build.version}-src.zip">
-			<zipfileset dir="${basedir}" prefix="${app.name}-${build.version}">
+		<tar destfile="${dist.dir}/${app.name}-${build.version}-src.tar">
+			<tarfileset dir="${basedir}" prefix="${app.name}-${build.version}">
 				<exclude name="dist/" />
 				<exclude name="bin/" />
 				<exclude name=".*/" />
@@ -97,27 +97,31 @@
 				<exclude name="etc/log4j.properties" />
 				<exclude name="*log*" />
 				<exclude name="**/etc/app.properties" />
-			</zipfileset>
-		</zip>
+			</tarfileset>
+		</tar>
+		<bzip2 src="${dist.dir}/${app.name}-${build.version}-src.tar" destfile="${dist.dir}/${app.name}-${build.version}-src.tar.bz2"/>
+		<delete file="${dist.dir}/${app.name}-${build.version}-src.tar" />
 	</target>
 
 	<target name="bin-dist-pkg" depends="jar" description="build a binary package for distribution">
 		<mkdir dir="${dist.dir}" />
-		<zip destfile="${dist.dir}/${app.name}-${build.version}-bin.zip">
-			<zipfileset prefix="${app.name}-${build.version}/lib" dir="${lib.dir}">
+		<tar destfile="${dist.dir}/${app.name}-${build.version}-bin.tar">
+			<tarfileset prefix="${app.name}-${build.version}/lib" dir="${lib.dir}">
 				<exclude name="ant-task/" />
 				<exclude name="junit*.jar" />
 				<exclude name="*sources*" />
-			</zipfileset>
-			<zipfileset fullpath="${app.name}-${build.version}/lib/${app.name}-${build.version}.jar" file="${dist.dir}/${app.name}-${build.version}.jar" />
-			<zipfileset prefix="${app.name}-${build.version}" dir="${shell.dir}" />
-			<zipfileset prefix="${app.name}-${build.version}/docs" dir="${doc.dir}" />
-			<zipfileset prefix="${app.name}-${build.version}/etc" dir="${etc.dir}">
+			</tarfileset>
+			<tarfileset fullpath="${app.name}-${build.version}/lib/${app.name}-${build.version}.jar" file="${dist.dir}/${app.name}-${build.version}.jar" />
+			<tarfileset prefix="${app.name}-${build.version}" dir="${shell.dir}" filemode="755" />
+			<tarfileset prefix="${app.name}-${build.version}/docs" dir="${doc.dir}" />
+			<tarfileset prefix="${app.name}-${build.version}/etc" dir="${etc.dir}">
 				<exclude name="log4j.properties" />
-			</zipfileset>
-			<zipfileset prefix="${app.name}-${build.version}" file="${basedir}/LICENSE.txt" />
-			<zipfileset prefix="${app.name}-${build.version}" file="${basedir}/README.txt" />
-		</zip>
+			</tarfileset>
+			<tarfileset prefix="${app.name}-${build.version}" file="${basedir}/LICENSE.txt" />
+			<tarfileset prefix="${app.name}-${build.version}" file="${basedir}/README.txt" />
+		</tar>
+		<bzip2 src="${dist.dir}/${app.name}-${build.version}-bin.tar" destfile="${dist.dir}/${app.name}-${build.version}-bin.tar.bz2"/>
+		<delete file="${dist.dir}/${app.name}-${build.version}-bin.tar" />
 	</target>
 
 	<target name="dist" description="build binary jar package and source package" depends="jar, src-eclipse-pkg, src-dist-pkg, bin-dist-pkg" />
