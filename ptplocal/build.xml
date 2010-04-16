@@ -2,7 +2,7 @@
 <project name="ptplocal" default="dist" basedir=".">
 	<property file="build.properties" />
 	<property name="app.name" value="${ant.project.name}" />
-	<property name="app.version" value="0.0.0" />
+	<property name="app.version" value="0.0" />
 	<property name="dist.dir" value="${basedir}/dist" />
 	<property name="bin.dir" value="${basedir}/bin" />
 	<property name="doc.dir" value="${basedir}/doc" />
@@ -39,8 +39,13 @@
 	</target>
 
 	<target name="pre-compile">
+		<exec executable="svnversion" failifexecutionfails="no" outputproperty="app.svn.version"> 
+			<arg value="${basedir}"/>  
+			<arg value="-n"/> 
+		</exec>
+		<property name="build.version" value="${app.version}.${app.svn.version}"/>
 		<propertyfile file="${conf.main.dir}/etc/app.properties" >
-			<entry  key="app.version" value="${app.version}"/>
+			<entry  key="build.version" value="${build.version}"/>
 			<entry  key="app.compile.time" type="date" value="now" pattern="yyyy-MM-dd HH:mm"/>
 		</propertyfile>
 
@@ -58,7 +63,7 @@
 
 	<target name="jar" depends="compile" description="build a jar package">
 		<mkdir dir="${dist.dir}" />
-		<jar destfile="${dist.dir}/${app.name}-${app.version}.jar" basedir="${bin.dir}">
+		<jar destfile="${dist.dir}/${app.name}-${build.version}.jar" basedir="${bin.dir}">
 			<fileset file="${basedir}/LICENSE.txt" />
 			<fileset file="${basedir}/README.txt" />
 		</jar>
@@ -66,7 +71,7 @@
 
 	<target name="src-eclipse-pkg" description="build a source package for eclipse source attachment">
 		<mkdir dir="${dist.dir}" />
-		<jar destfile="${dist.dir}/${app.name}-${app.version}-sources.jar">
+		<jar destfile="${dist.dir}/${app.name}-${build.version}-sources.jar">
 			<fileset dir="${src.main.dir}" />
 			<fileset dir="${src.test.dir}" />
 			<fileset dir="${conf.main.dir}" />
@@ -78,8 +83,8 @@
 
 	<target name="src-dist-pkg" description="build a source package for distributing">
 		<mkdir dir="${dist.dir}" />
-		<zip destfile="${dist.dir}/${app.name}-${app.version}-src.zip">
-			<zipfileset dir="${basedir}" prefix="${app.name}-${app.version}">
+		<zip destfile="${dist.dir}/${app.name}-${build.version}-src.zip">
+			<zipfileset dir="${basedir}" prefix="${app.name}-${build.version}">
 				<exclude name="dist/" />
 				<exclude name="bin/" />
 				<exclude name=".*/" />
@@ -93,20 +98,20 @@
 
 	<target name="bin-dist-pkg" depends="jar" description="build a binary package for distribution">
 		<mkdir dir="${dist.dir}" />
-		<zip destfile="${dist.dir}/${app.name}-${app.version}-bin.zip">
-			<zipfileset prefix="${app.name}-${app.version}/lib" dir="${lib.dir}">
+		<zip destfile="${dist.dir}/${app.name}-${build.version}-bin.zip">
+			<zipfileset prefix="${app.name}-${build.version}/lib" dir="${lib.dir}">
 				<exclude name="ant-task/" />
 				<exclude name="junit*.jar" />
 				<exclude name="*sources*" />
 			</zipfileset>
-			<zipfileset fullpath="${app.name}-${app.version}/lib/${app.name}-${app.version}.jar" file="${dist.dir}/${app.name}-${app.version}.jar" />
-			<zipfileset prefix="${app.name}-${app.version}" dir="${shell.dir}" />
-			<zipfileset prefix="${app.name}-${app.version}/docs" dir="${doc.dir}" />
-			<zipfileset prefix="${app.name}-${app.version}/etc" dir="${etc.dir}">
+			<zipfileset fullpath="${app.name}-${build.version}/lib/${app.name}-${build.version}.jar" file="${dist.dir}/${app.name}-${build.version}.jar" />
+			<zipfileset prefix="${app.name}-${build.version}" dir="${shell.dir}" />
+			<zipfileset prefix="${app.name}-${build.version}/docs" dir="${doc.dir}" />
+			<zipfileset prefix="${app.name}-${build.version}/etc" dir="${etc.dir}">
 				<exclude name="log4j.properties" />
 			</zipfileset>
-			<zipfileset prefix="${app.name}-${app.version}" file="${basedir}/LICENSE.txt" />
-			<zipfileset prefix="${app.name}-${app.version}" file="${basedir}/README.txt" />
+			<zipfileset prefix="${app.name}-${build.version}" file="${basedir}/LICENSE.txt" />
+			<zipfileset prefix="${app.name}-${build.version}" file="${basedir}/README.txt" />
 		</zip>
 	</target>
 
