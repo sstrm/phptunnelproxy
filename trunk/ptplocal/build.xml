@@ -31,6 +31,10 @@
 	<taskdef name="eclipse" classname="com.xmxsuperstar.ant.task.EclipseProjectTask">
 		<classpath refid="ant-task.classpath" />
 	</taskdef>
+	
+	<taskdef resource="net/sf/antcontrib/antlib.xml" >
+		<classpath refid="ant-task.classpath" />
+	</taskdef>
 
 	<target name="clean">
 		<delete dir="${bin.dir}" />
@@ -39,10 +43,11 @@
 	</target>
 
 	<target name="pre-compile">
-		<exec executable="svnversion" failifexecutionfails="no" outputproperty="app.svn.version"> 
+		<exec executable="svnversion" failifexecutionfails="no" outputproperty="_app.svn.version"> 
 			<arg value="${basedir}"/>  
 			<arg value="-n"/> 
 		</exec>
+		<propertyregex property="app.svn.version" input="${_app.svn.version}" regexp="(\d+)M?:?(\d+)?" select="\1"/>
 		<property name="build.version" value="${app.version}.${app.svn.version}"/>
 		<propertyfile file="${conf.main.dir}/etc/app.properties" >
 			<entry  key="build.version" value="${build.version}"/>
