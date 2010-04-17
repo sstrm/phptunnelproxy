@@ -4,11 +4,12 @@ import java.io.BufferedInputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
 import java.net.URL;
-
 import org.apache.log4j.Logger;
 
 import ptp.Config;
@@ -16,9 +17,9 @@ import ptp.util.ByteArrayUtil;
 
 public class LocalProxyServer implements Runnable {
 	private static Logger log = Logger.getLogger(LocalProxyServer.class);
-	
+
 	private boolean isStopped = false;
-	
+
 	public synchronized void stopServer() {
 		isStopped = true;
 	}
@@ -37,13 +38,13 @@ public class LocalProxyServer implements Runnable {
 				Socket browserSocket = null;
 				try {
 					browserSocket = sSocket.accept();
-				} catch(SocketTimeoutException ste) {
+				} catch (SocketTimeoutException ste) {
 					continue;
 				}
-				if(browserSocket != null) {
+				if (browserSocket != null) {
 					log.info("visit from browser: "
-							+ browserSocket.getInetAddress().getHostAddress() + " "
-							+ browserSocket.getPort());
+							+ browserSocket.getInetAddress().getHostAddress()
+							+ " " + browserSocket.getPort());
 					Thread localProxyProcessThread = new Thread(
 							new LocalProxyProcessThread(browserSocket));
 					localProxyProcessThread.start();
@@ -92,46 +93,30 @@ class LocalProxyProcessThread implements Runnable {
 						+ ByteArrayUtil.toString(buff, 0, readCount));
 
 				Socket sslSocket = new Socket("127.0.0.1", 8889);
-				DataInputStream sslIn = new DataInputStream(
-						new BufferedInputStream(sslSocket.getInputStream()));
-				DataOutputStream sslOut = new DataOutputStream(sslSocket
-						.getOutputStream());
+				InputStream sslIn = sslSocket.getInputStream();
+				OutputStream sslOut = sslSocket.getOutputStream();
 
 				outToBrowser.write("HTTP/1.1 200 Connection established\r\n"
 						.getBytes("US-ASCII"));
-				outToBrowser.write("Proxy-agent: Netscape-Proxy/1.1\r\n"
+				outToBrowser.write("Proxy-agent: Mozilla/1.1\r\n"
 						.getBytes("US-ASCII"));
-				outToBrowser.write("Proxy-Connection: close\r\n"
+				outToBrowser.write("Proxy-Connection: Keep-Alive\r\n"
 						.getBytes("US-ASCII"));
 				outToBrowser.write("\r\n".getBytes("US-ASCII"));
 
 				outToBrowser.flush();
 
-				while (true) {
-					if (browserSocket.isClosed()) {
-						break;
-					}
-					if (inFromBrowser.available() > 0
-							&& ((readCount = inFromBrowser.read(buff)) > 0)) {
-						sslOut.write(buff, 0, readCount);
-						sslOut.flush();
-					} else if (readCount < 0) {
-						break;
-					}
-
-					try {
-						sslSocket.sendUrgentData(0);
-					} catch (IOException e) {
-						break;
-					}
-					if (sslIn.available() > 0
-							&& ((readCount = sslIn.read(buff)) > 0)) {
-						outToBrowser.write(buff, 0, readCount);
-						outToBrowser.flush();
-					} else if (readCount < 0) {
-						break;
-					}
-
+				Thread pipeThreadFromBrowserToSSLServer = new Thread(
+						new PipeThread(inFromBrowser, sslOut, "1"));
+				Thread pipeThreadFromSSLServerToBrowser = new Thread(
+						new PipeThread(sslIn, outToBrowser, "2"));
+				pipeThreadFromBrowserToSSLServer.start();
+				pipeThreadFromSSLServerToBrowser.start();
+				try {
+					pipeThreadFromBrowserToSSLServer.join();
+					pipeThreadFromSSLServerToBrowser.join();
+				} catch (InterruptedException e) {
+					log.error(e.getMessage(), e);
 				}
 
 				sslOut.close();
@@ -174,6 +159,49 @@ class LocalProxyProcessThread implements Runnable {
 				browserSocket.close();
 			} catch (IOException e) {
 				log.error(e.getMessage(), e);
+			}
+		}
+
+	}
+}
+
+class PipeThread implements Runnable {
+	private static Logger log = Logger.getLogger(PipeThread.class);
+	InputStream in;
+	OutputStream out;
+	String title;
+
+	PipeThread(InputStream in, OutputStream out, String title) {
+		this.in = in;
+		this.out = out;
+		this.title = title;
+	}
+
+	@Override
+	public void run() {
+		int rc = 0;
+		int buffSize = Integer.parseInt(Config.getIns().getValue(
+				"ptp.buff.size", "1024"));
+		byte[] buff = new byte[buffSize];
+		try {
+			while (true) {
+				rc = in.read(buff);
+				if (rc == -1) {
+					break;
+				}
+				if (rc > 0) {
+					out.write(buff, 0, rc);
+					out.flush();
+				}
+			}
+		} catch (final Exception e) {
+			log.error(title + e.getMessage(), e);
+
+		} finally {
+			try {
+				in.close();
+				out.close();
+			} catch (final Exception e) {
 			}
 		}
 
