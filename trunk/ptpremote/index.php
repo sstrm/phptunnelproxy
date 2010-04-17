@@ -20,13 +20,18 @@ textarea {
 
 .test_ok {
 	background: green;
+	text-align:center;
+	width:300px;
 }
 .test_failed {
 	background: red;
+	text-align:center;
+	width:300px;
 }
 </style>
 </head>
 <body>
+<h1>PTP Test</h1>
 <?php
 function head_test($dest_host, $dest_port) {
 	if($dest_port == 443)
@@ -50,13 +55,19 @@ function head_test($dest_host, $dest_port) {
 	}
 }
 
+head_test("www.sina.com.cn", 80);
 head_test("www.baidu.com", 80);
 head_test("www.google.com", 80);
+head_test("www.yahoo.com", 80);
 head_test("mail.google.com", 443);
 head_test("www.facebook.com", 80);
 head_test("www.facebook.com", 443);
 head_test("www.twitter.com", 80);
 head_test("www.twitter.com", 443);
+head_test("69.63.189.16", 80);
+head_test("69.63.189.16", 443);
+head_test("168.143.162.68", 80);
+head_test("168.143.162.68", 443);
 ?>
 </body>
 </html>
