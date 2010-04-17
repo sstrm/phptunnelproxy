@@ -1,6 +1,5 @@
 package ptp.local;
 
-import java.io.BufferedInputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.FileInputStream;
@@ -83,8 +82,8 @@ class SSLForwardServerProcessThread implements Runnable {
 	@Override
 	public void run() {
 		try {
-			DataInputStream in = new DataInputStream(new BufferedInputStream(
-					sslSocket.getInputStream()));
+			DataInputStream in = new DataInputStream(
+					sslSocket.getInputStream());
 
 			DataOutputStream out = new DataOutputStream(sslSocket
 					.getOutputStream());
@@ -106,9 +105,18 @@ class SSLForwardServerProcessThread implements Runnable {
 
 			String destHost = null;
 			for (String header : requestHeaders) {
-				log.debug(header);
-				if (header.toUpperCase().startsWith("HOST: ")) {
+				if (header.toUpperCase().startsWith("HOST: ".toUpperCase())) {
 					destHost = header.split(":\\s")[1];
+				}
+				
+				if (header.toUpperCase().startsWith("Content-Length:".toUpperCase())) {
+					int bodyLen = Integer.parseInt(header.split(":\\s")[1]);
+					if(requestBody.length<bodyLen) {
+						byte[] requestBodyTmp = new byte[bodyLen];
+						ByteArrayUtil.copy(requestBody, 0, requestBodyTmp, 0, requestBody.length);
+						in.read(requestBodyTmp, requestBody.length, bodyLen);
+						requestBody = requestBodyTmp;
+					}
 				}
 			}
 			log.info("destHost: " + destHost);
@@ -122,6 +130,8 @@ class SSLForwardServerProcessThread implements Runnable {
 			}
 			log.info("destPort: " + destPort);
 
+			log.debug("ssl headers: " + requestHeaderString);
+			log.debug("ssl body: " + ByteArrayUtil.toString(requestBody, 0, requestBody.length));
 			HttpProxy httpProxy = new HttpProxy(destHost, destPort, in, out);
 			httpProxy.proces(requestHeaders, requestBody);
 			
