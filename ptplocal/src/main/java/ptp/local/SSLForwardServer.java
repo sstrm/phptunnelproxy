@@ -6,11 +6,11 @@ import java.io.IOException;
 import java.net.SocketTimeoutException;
 import java.security.KeyStore;
 
-import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLServerSocket;
 import javax.net.ssl.SSLServerSocketFactory;
 import javax.net.ssl.SSLSocket;
+import javax.net.ssl.X509KeyManager;
 
 import org.apache.log4j.Logger;
 
@@ -19,9 +19,9 @@ import ptp.util.ByteArrayUtil;
 
 public class SSLForwardServer implements Runnable {
 	private static Logger log = Logger.getLogger(SSLForwardServer.class);
-	
+
 	private boolean isStopped = false;
-	
+
 	public synchronized void stopServer() {
 		isStopped = true;
 	}
@@ -35,10 +35,9 @@ public class SSLForwardServer implements Runnable {
 		try {
 			KeyStore ks = KeyStore.getInstance("JKS");
 			ks.load(SSLForwardServer.class.getResourceAsStream(ksName), ksPass);
-			KeyManagerFactory kmf = KeyManagerFactory.getInstance("SunX509");
-			kmf.init(ks, ctPass);
 			SSLContext sc = SSLContext.getInstance("SSLv3");
-			sc.init(kmf.getKeyManagers(), null, null);
+			sc.init(new X509KeyManager[] { new AliasKeyManager(ks, ctPass,
+					"s-static.ak.facebook.com") }, null, null);
 			SSLServerSocketFactory ssf = sc.getServerSocketFactory();
 			int localSslPort = Integer.parseInt(Config.getIns().getValue(
 					"ptp.local.ssl.port", "8889"));
@@ -46,15 +45,15 @@ public class SSLForwardServer implements Runnable {
 					.createServerSocket(localSslPort);
 			sslServerSocket.setSoTimeout(1000);
 			log.info("local ssl server started on port: " + localSslPort);
-			
+
 			while (!isStopped) {
 				SSLSocket sslSocket = null;
 				try {
 					sslSocket = (SSLSocket) sslServerSocket.accept();
-				} catch(SocketTimeoutException ste) {
+				} catch (SocketTimeoutException ste) {
 					continue;
 				}
-				if(sslSocket != null) {
+				if (sslSocket != null) {
 					Thread sslForwardServerProcessThread = new Thread(
 							new SSLForwardServerProcessThread(sslSocket));
 					sslForwardServerProcessThread.start();
@@ -81,8 +80,7 @@ class SSLForwardServerProcessThread implements Runnable {
 	@Override
 	public void run() {
 		try {
-			DataInputStream in = new DataInputStream(
-					sslSocket.getInputStream());
+			DataInputStream in = new DataInputStream(sslSocket.getInputStream());
 
 			DataOutputStream out = new DataOutputStream(sslSocket
 					.getOutputStream());
@@ -107,12 +105,14 @@ class SSLForwardServerProcessThread implements Runnable {
 				if (header.toUpperCase().startsWith("HOST: ".toUpperCase())) {
 					destHost = header.split(":\\s")[1];
 				}
-				
-				if (header.toUpperCase().startsWith("Content-Length:".toUpperCase())) {
+
+				if (header.toUpperCase().startsWith(
+						"Content-Length:".toUpperCase())) {
 					int bodyLen = Integer.parseInt(header.split(":\\s")[1]);
-					if(requestBody.length<bodyLen) {
+					if (requestBody.length < bodyLen) {
 						byte[] requestBodyTmp = new byte[bodyLen];
-						ByteArrayUtil.copy(requestBody, 0, requestBodyTmp, 0, requestBody.length);
+						ByteArrayUtil.copy(requestBody, 0, requestBodyTmp, 0,
+								requestBody.length);
 						in.read(requestBodyTmp, requestBody.length, bodyLen);
 						requestBody = requestBodyTmp;
 					}
@@ -130,16 +130,18 @@ class SSLForwardServerProcessThread implements Runnable {
 			log.info("destPort: " + destPort);
 
 			log.debug("ssl headers: " + requestHeaderString);
-			log.debug("ssl body: " + ByteArrayUtil.toString(requestBody, 0, requestBody.length));
+			log.debug("ssl body: "
+					+ ByteArrayUtil
+							.toString(requestBody, 0, requestBody.length));
 			HttpProxy httpProxy = new HttpProxy(destHost, destPort, in, out);
 			httpProxy.proces(requestHeaders, requestBody);
-			
+
 			try {
 				Thread.sleep(200);
 			} catch (InterruptedException e) {
 				log.fatal(e.getMessage(), e);
 			}
-			
+
 			in.close();
 			out.close();
 			sslSocket.close();
