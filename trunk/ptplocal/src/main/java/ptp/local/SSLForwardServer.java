@@ -2,7 +2,6 @@ package ptp.local;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.SocketTimeoutException;
 import java.security.KeyStore;
@@ -30,12 +29,12 @@ public class SSLForwardServer implements Runnable {
 	@Override
 	public void run() {
 
-		String ksName = "etc/ptp.jks";
+		String ksName = "/etc/ptp.jks";
 		char ksPass[] = "phptunnelproxykspass".toCharArray();
 		char ctPass[] = "phptunnelproxyctpass".toCharArray();
 		try {
 			KeyStore ks = KeyStore.getInstance("JKS");
-			ks.load(new FileInputStream(ksName), ksPass);
+			ks.load(SSLForwardServer.class.getResourceAsStream(ksName), ksPass);
 			KeyManagerFactory kmf = KeyManagerFactory.getInstance("SunX509");
 			kmf.init(ks, ctPass);
 			SSLContext sc = SSLContext.getInstance("SSLv3");
