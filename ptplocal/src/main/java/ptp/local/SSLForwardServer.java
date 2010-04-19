@@ -37,7 +37,7 @@ public class SSLForwardServer implements Runnable {
 			ks.load(SSLForwardServer.class.getResourceAsStream(ksName), ksPass);
 			SSLContext sc = SSLContext.getInstance("SSLv3");
 			sc.init(new X509KeyManager[] { new AliasKeyManager(ks, ctPass,
-					"s-static.ak.facebook.com") }, null, null);
+					"twitter.com") }, null, null);
 			SSLServerSocketFactory ssf = sc.getServerSocketFactory();
 			int localSslPort = Integer.parseInt(Config.getIns().getValue(
 					"ptp.local.ssl.port", "8889"));

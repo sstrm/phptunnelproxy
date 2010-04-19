@@ -26,7 +26,7 @@ public class AliasKeyManager implements X509KeyManager {
 		try {
 			PrivateKey key = (PrivateKey) keyStore.getKey(alias, ctpassword);
 			if (key == null) {
-				key = (PrivateKey) keyStore.getKey("twitter.com", ctpassword);
+				key = (PrivateKey) keyStore.getKey("ptproot", ctpassword);
 			}
 			return key;
 		} catch (Exception e) {
@@ -39,7 +39,8 @@ public class AliasKeyManager implements X509KeyManager {
 			java.security.cert.Certificate[] certs = keyStore
 					.getCertificateChain(alias);
 			if (certs == null || certs.length == 0)
-				return null;
+				certs = keyStore
+				.getCertificateChain("ptproot");
 			X509Certificate[] x509 = new X509Certificate[certs.length];
 			for (int i = 0; i < certs.length; i++)
 				x509[i] = (X509Certificate) certs[i];
