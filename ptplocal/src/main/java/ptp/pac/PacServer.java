@@ -40,6 +40,11 @@ public class PacServer implements Runnable {
 				Socket browserSocket = null;
 				try {
 					browserSocket = sSocket.accept();
+
+					log.info("visit from browser: "
+							+ browserSocket.getInetAddress().getHostAddress()
+							+ " " + browserSocket.getPort());
+
 					BufferedWriter w = new BufferedWriter(
 							new OutputStreamWriter(browserSocket
 									.getOutputStream()));
@@ -53,8 +58,26 @@ public class PacServer implements Runnable {
 						w.write("Content-Type: text/plain");
 						w.newLine();
 						w.newLine();
-						w.write(this.getPac(Integer.parseInt(Config.getIns()
-								.getValue("ptp.local.proxy.port", "8888"))));
+						String[] tokens = m.split("\\s");
+						String pacRequestPath = tokens[1];
+						if (pacRequestPath.equalsIgnoreCase("/gfwlist.txt")) {
+							w.write(this.getGFWList());
+						} else if (pacRequestPath.equalsIgnoreCase("/rule.txt")) {
+							w.write(this.getRule());
+						} else if (pacRequestPath.equalsIgnoreCase("/pac.txt")) {
+							w.write(this.getPac(Integer.parseInt(Config
+									.getIns().getValue("ptp.local.proxy.port",
+											"8888"))));
+						} else {
+							w.write("PTP Pac Server\n");
+							w.write("Use one of them:\n");
+							w
+									.write("/gfwlist.txt for base64 encoded gfwlist.txt from gfwlist project\n");
+							w
+									.write("/rule.txt for base64 decoded gfwlist.txt\n");
+							w.write("/pac.txt for pac script\n");
+						}
+
 						w.flush();
 					}
 				} catch (SocketTimeoutException ste) {
@@ -71,7 +94,7 @@ public class PacServer implements Runnable {
 		}
 	}
 
-	private String getPac(int port) {
+	private String getGFWList() {
 		BufferedReader gfwlistR = null;
 		try {
 			URL gfwlistUrl = new URL(Config.getIns().getValue(
@@ -87,20 +110,33 @@ public class PacServer implements Runnable {
 		}
 
 		StringBuilder gfwlistContent = new StringBuilder();
-		StringBuilder pacContent = new StringBuilder();
 
 		try {
 			String line = null;
 			while ((line = gfwlistR.readLine()) != null) {
-				gfwlistContent.append(line);
-				//System.out.println(line);
+				gfwlistContent.append(line).append("\n");
 			}
-			
-			String ruleString = Base64Coder.decodeString(gfwlistContent
-					.toString());
-			BufferedReader ruleR = new BufferedReader(
-					new InputStreamReader(new ByteArrayInputStream(ruleString
-							.getBytes("ISO-8859-1"))));
+		} catch (IOException e) {
+			log.error(e.getMessage(), e);
+		}
+
+		return gfwlistContent.toString();
+	}
+
+	private String getRule() {
+		String ruleString = Base64Coder.decodeString(this.getGFWList().replace(
+				"\n", ""));
+		return ruleString;
+	}
+
+	private String getPac(int port) {
+		StringBuilder pacContent = new StringBuilder();
+
+		try {
+
+			BufferedReader ruleR = new BufferedReader(new InputStreamReader(
+					new ByteArrayInputStream(this.getRule().getBytes(
+							"ISO-8859-1"))));
 
 			pacContent.append("function FindProxyForURL(url, host) {").append(
 					"\n");
@@ -110,7 +146,7 @@ public class PacServer implements Runnable {
 			pacContent.append("\t").append("var DEFAULT = \"DIRECT\";").append(
 					"\n");
 
-			line = null;
+			String line = null;
 			while ((line = ruleR.readLine()) != null) {
 				log.debug(line);
 				if (line.isEmpty()) {
