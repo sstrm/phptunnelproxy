@@ -48,7 +48,6 @@ public class PacServer implements Runnable {
 									.getInputStream()));
 					String m = r.readLine();
 					if (m != null) {
-						// We have a real data connection
 						w.write("HTTP/1.0 200 OK");
 						w.newLine();
 						w.write("Content-Type: text/plain");
@@ -75,10 +74,11 @@ public class PacServer implements Runnable {
 	private String getPac(int port) {
 		BufferedReader gfwlistR = null;
 		try {
-			URL gfwlistUrl = new URL(Config.getIns().getValue("ptp.local.pac.gfwlist",
+			URL gfwlistUrl = new URL(Config.getIns().getValue(
+					"ptp.local.pac.gfwlist",
 					PacServer.class.getResource("/etc/gfwlist.txt").toString()));
 			log.debug(Config.getIns().getValue("ptp.local.pac.gfwlist"));
-			log.debug(gfwlistUrl.toString());
+			log.info("gfwlist: " + gfwlistUrl.toString());
 			URLConnection gfwlistConn = gfwlistUrl.openConnection();
 			gfwlistR = new BufferedReader(new InputStreamReader(gfwlistConn
 					.getInputStream()));
@@ -93,8 +93,9 @@ public class PacServer implements Runnable {
 			String line = null;
 			while ((line = gfwlistR.readLine()) != null) {
 				gfwlistContent.append(line);
+				//System.out.println(line);
 			}
-
+			
 			String ruleString = Base64Coder.decodeString(gfwlistContent
 					.toString());
 			BufferedReader ruleR = new BufferedReader(
@@ -154,7 +155,7 @@ public class PacServer implements Runnable {
 
 	private String regEncode(String str) {
 		return str.replace("/", "\\/").replace(".", "\\.").replace(":", "\\:")
-				.replace("%", "\\%").replace("*", "\\*").replace("-", "\\-")
+				.replace("%", "\\%").replace("*", ".*").replace("-", "\\-")
 				.replace("&", "\\&").replace("?", "\\?");
 	}
 
