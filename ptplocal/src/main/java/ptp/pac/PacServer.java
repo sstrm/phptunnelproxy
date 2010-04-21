@@ -92,6 +92,8 @@ public class PacServer implements Runnable {
 							sb.append("<a href=\"/gfwlist.txt\">/gfwlist.txt</a>").append(" for base64 encoded gfwlist.txt from gfwlist project").append("<br />");
 							sb.append("<a href=\"/rule.txt\">/rule.txt</a>").append(" for base64 decoded gfwlist.txt").append("<br />");
 							sb.append("<a href=\"/gfwlist.pac\">/gfwlist.pac</a>").append(" for pac script").append("<br />");
+							sb.append("</body>");
+							sb.append("</html>");
 							
 							w.write("Content-Length: " + sb.length() + "\r\n");
 							w.write("Content-Type: text/html\r\n\r\n");
