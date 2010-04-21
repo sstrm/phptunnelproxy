@@ -55,27 +55,47 @@ public class PacServer implements Runnable {
 					if (m != null) {
 						w.write("HTTP/1.0 200 OK");
 						w.newLine();
-						w.write("Content-Type: text/plain");
-						w.newLine();
-						w.newLine();
+
 						String[] tokens = m.split("\\s");
 						String pacRequestPath = tokens[1];
 						if (pacRequestPath.equalsIgnoreCase("/gfwlist.txt")) {
-							w.write(this.getGFWList());
+							String gfwlist = this.getGFWList();
+							w.write("Content-Length: " + gfwlist.length()
+									+ "\r\n");
+							w.write("Content-Type: text/plain\r\n\r\n");
+							w.write(gfwlist);
 						} else if (pacRequestPath.equalsIgnoreCase("/rule.txt")) {
+							String rule = this.getRule();
+							w
+									.write("Content-Length: " + rule.length()
+											+ "\r\n");
+							w.write("Content-Type: text/plain\r\n\r\n");
 							w.write(this.getRule());
-						} else if (pacRequestPath.equalsIgnoreCase("/pac.txt")) {
-							w.write(this.getPac(Integer.parseInt(Config
+						} else if (pacRequestPath
+								.equalsIgnoreCase("/gfwlist.pac")) {
+							String pac = this.getPac(Integer.parseInt(Config
 									.getIns().getValue("ptp.local.proxy.port",
-											"8888"))));
+											"8888")));
+							
+							w.write("Content-Length: " + pac.length() + "\r\n");
+							w.write("Content-Type: text/plain\r\n\r\n");
+							w.write(pac);
 						} else {
-							w.write("PTP Pac Server\n");
-							w.write("Use one of them:\n");
-							w
-									.write("/gfwlist.txt for base64 encoded gfwlist.txt from gfwlist project\n");
-							w
-									.write("/rule.txt for base64 decoded gfwlist.txt\n");
-							w.write("/pac.txt for pac script\n");
+							StringBuilder sb = new StringBuilder();
+							sb.append("<html>");
+							sb.append("<head>").append(
+									"<title>").append("PTP Pac Server").append(
+									"</title>").append("</head>");
+							sb.append("<body>");
+							sb.append("<h1>PTP Pac Server</h1>").append("<br />");
+							sb.append("<h3>Use one of them</h3>").append("<br />");
+							sb.append("<a href=\"/gfwlist.txt\">/gfwlist.txt</a>").append(" for base64 encoded gfwlist.txt from gfwlist project").append("<br />");
+							sb.append("<a href=\"/rule.txt\">/rule.txt</a>").append(" for base64 decoded gfwlist.txt").append("<br />");
+							sb.append("<a href=\"/gfwlist.pac\">/gfwlist.pac</a>").append(" for pac script").append("<br />");
+							
+							w.write("Content-Length: " + sb.length() + "\r\n");
+							w.write("Content-Type: text/html\r\n\r\n");
+							w.write(sb.toString());
 						}
 
 						w.flush();
