@@ -29,6 +29,7 @@ import org.apache.log4j.Logger;
 import ptp.Config;
 import ptp.local.LocalProxyServer;
 import ptp.local.SSLForwardServer;
+import ptp.pac.PacServer;
 
 public class GUILauncher extends Launcher {
 	private static Logger log = Logger.getLogger(GUILauncher.class);
@@ -37,6 +38,8 @@ public class GUILauncher extends Launcher {
 	private static SSLForwardServer sslForwardServer;
 	private static Thread localProxyThread;
 	private static LocalProxyServer localProxyServer;
+	private static PacServer pacServer;
+	private static Thread pacThread ;
 
 	/**
 	 * @param args
@@ -54,11 +57,23 @@ public class GUILauncher extends Launcher {
 		localProxyServer = new LocalProxyServer();
 		localProxyThread = new Thread(localProxyServer);
 		localProxyThread.start();
+		
+		pacServer = new PacServer();
+		pacThread = new Thread(pacServer);
+		pacThread.start();
 	}
 
 	public static void stopServer() {
 		if (localProxyServer == null || localProxyThread == null
-				|| sslForwardServer == null || sslForwarderThread == null) {
+				) {
+			return;
+		}
+		
+		if( sslForwardServer == null || sslForwarderThread == null) {
+			return;
+		}
+		
+		if(pacServer == null || pacThread == null) {
 			return;
 		}
 
@@ -72,6 +87,13 @@ public class GUILauncher extends Launcher {
 		sslForwardServer.stopServer();
 		try {
 			sslForwarderThread.join();
+		} catch (InterruptedException e) {
+			log.error(e.getMessage(), e);
+		}
+		
+		pacServer.stopServer();
+		try {
+			pacThread.join();
 		} catch (InterruptedException e) {
 			log.error(e.getMessage(), e);
 		}
