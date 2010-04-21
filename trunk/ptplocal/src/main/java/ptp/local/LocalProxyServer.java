@@ -29,7 +29,7 @@ public class LocalProxyServer implements Runnable {
 		ServerSocket sSocket = null;
 		try {
 			int localProxyPort = Integer.parseInt(Config.getIns().getValue(
-					"ptp.local.proxy.port", "8888"));
+					"ptp.local.proxy.port", "8887"));
 			sSocket = new ServerSocket(localProxyPort);
 			sSocket.setSoTimeout(1000);
 			log.info("local proxy server started on port: " + localProxyPort);
