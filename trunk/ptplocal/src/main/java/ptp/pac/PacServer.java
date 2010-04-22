@@ -51,13 +51,24 @@ public class PacServer implements Runnable {
 					BufferedReader r = new BufferedReader(
 							new InputStreamReader(browserSocket
 									.getInputStream()));
-					String m = r.readLine();
+
+					String m = null;
+					String pacRequestPath = null;
+					String pacHostName = null;
+					while ((m = r.readLine()) != null) {
+						if (m.toUpperCase().startsWith("GET")) {
+							pacRequestPath = m.split("\\s")[1];
+						} else if (m.toUpperCase().startsWith("HOST:")) {
+							// Host: 127.0.0.1:8888
+							pacHostName = m.substring(6).split(":")[0];
+						} else if (m.isEmpty()) {
+							break;
+						}
+					}
 					if (m != null) {
 						w.write("HTTP/1.0 200 OK");
 						w.newLine();
 
-						String[] tokens = m.split("\\s");
-						String pacRequestPath = tokens[1];
 						if (pacRequestPath.equalsIgnoreCase("/gfwlist.txt")) {
 							String gfwlist = this.getGFWList();
 							w.write("Content-Length: " + gfwlist.length()
@@ -73,31 +84,31 @@ public class PacServer implements Runnable {
 							w.write(this.getRule());
 						} else if (pacRequestPath
 								.equalsIgnoreCase("/gfwlist.pac")) {
-							String pac = this.getPac(Integer.parseInt(Config
-									.getIns().getValue("ptp.local.proxy.port",
-											"8888")));
-							
+							String pac = this.getPac(pacHostName, Integer
+									.parseInt(Config.getIns().getValue(
+											"ptp.local.proxy.port", "8888")));
+
 							w.write("Content-Length: " + pac.length() + "\r\n");
 							w.write("Content-Type: text/plain\r\n\r\n");
 							w.write(pac);
 						} else {
-							StringBuilder sb = new StringBuilder();
-							sb.append("<html>");
-							sb.append("<head>").append(
-									"<title>").append("PTP Pac Server").append(
-									"</title>").append("</head>");
-							sb.append("<body>");
-							sb.append("<h1>PTP Pac Server</h1>").append("<br />");
-							sb.append("<h3>Use one of them</h3>").append("<br />");
-							sb.append("<a href=\"/gfwlist.txt\">/gfwlist.txt</a>").append(" for base64 encoded gfwlist.txt from gfwlist project").append("<br />");
-							sb.append("<a href=\"/rule.txt\">/rule.txt</a>").append(" for base64 decoded gfwlist.txt").append("<br />");
-							sb.append("<a href=\"/gfwlist.pac\">/gfwlist.pac</a>").append(" for pac script").append("<br />");
-							sb.append("</body>");
-							sb.append("</html>");
-							
-							w.write("Content-Length: " + sb.length() + "\r\n");
+							URL pacIndexUrl = PacServer.class
+									.getResource("/etc/pacindex.html");
+							URLConnection pacIndexUrlConn = pacIndexUrl
+									.openConnection();
+
+							w.write("Content-Length: "
+									+ pacIndexUrlConn.getContentLength()
+									+ "\r\n");
 							w.write("Content-Type: text/html\r\n\r\n");
-							w.write(sb.toString());
+							BufferedReader pacIndexR = new BufferedReader(
+									new InputStreamReader(pacIndexUrlConn
+											.getInputStream()));
+							while ((m = pacIndexR.readLine()) != null) {
+								w.write(m);
+								w.write("\n");
+							}
+
 						}
 
 						w.flush();
@@ -151,7 +162,7 @@ public class PacServer implements Runnable {
 		return ruleString;
 	}
 
-	private String getPac(int port) {
+	private String getPac(String hostName, int port) {
 		StringBuilder pacContent = new StringBuilder();
 
 		try {
@@ -163,8 +174,8 @@ public class PacServer implements Runnable {
 			pacContent.append("function FindProxyForURL(url, host) {").append(
 					"\n");
 			pacContent.append("\t").append(
-					"var PROXY = \"PROXY 127.0.0.1:" + port + "\";").append(
-					"\n");
+					"var PROXY = \"PROXY " + hostName + ":" + port + "\";")
+					.append("\n");
 			pacContent.append("\t").append("var DEFAULT = \"DIRECT\";").append(
 					"\n");
 
