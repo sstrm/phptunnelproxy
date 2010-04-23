@@ -28,10 +28,9 @@ $port=!empty($_GET['port'])?$_GET['port']:'8080';
 $gfwlist_url='http://autoproxy-gfwlist.googlecode.com/svn/trunk/gfwlist.txt';
 
 $ch=curl_init();  
-curl_setopt($ch, CURLOPT_URL, $gfwlist_url);  
-curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);  
-curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);  
-$content=curl_exec($ch);  
+curl_setopt($ch, CURLOPT_URL, $gfwlist_url);
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+$content=curl_exec($ch);
 curl_close($ch);
 $gfwlist=explode("\n", base64_decode($content)); 
 
