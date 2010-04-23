@@ -27,7 +27,14 @@ $host=!empty($_GET['host'])?$_GET['host']:'127.0.0.1';
 $port=!empty($_GET['port'])?$_GET['port']:'8080';
 $gfwlist_url='http://autoproxy-gfwlist.googlecode.com/svn/trunk/gfwlist.txt';
 
-$gfwlist=explode("\n", base64_decode(file_get_contents($gfwlist_url))); 
+$ch=curl_init();  
+curl_setopt($ch, CURLOPT_URL, $gfwlist_url);  
+curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);  
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);  
+$content=curl_exec($ch);  
+curl_close($ch);
+$gfwlist=explode("\n", base64_decode($content)); 
+
 ?>
 function FindProxyForURL(url, host) {
 	var PROXY = "<?php echo $type;?> <?php echo $host;?>:<?php echo $port;?>";
