@@ -1,4 +1,9 @@
 <?php
+/*
+ * This is a php implementation of autoproxy2pac
+ */
+
+
 function reg_encode($str) {
 	$tmp_str=$str;
 	$tmp_str=str_replace('/', "\\/", $tmp_str);
@@ -13,18 +18,56 @@ function reg_encode($str) {
 	return $tmp_str;
 }
 
+if((!isset($_GET['raw']))&&(!isset($_GET['rulelist']))&&(empty($_GET['type'])||empty($_GET['host'])||empty($_GET['port'])))
+{
+	echo '
+		<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"> 
+		<html xmlns="http://www.w3.org/1999/xhtml">
+		<head profile="http://gmpg.org/xfn/11">
+			<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+			<title>PTP AutoProxy2PAC</title>
+		</head>
+		<body>
+			<div>
+				<h3>Setup your pac</h3>
+				<form action="pac.php" method="get" style="margin:0px;display:inline">
+					Proxy Server:
+					<select name="type">
+						<option value="http">HTTP</option>
+						<option value="socks">SOCKS</option>
+					</select>
+					<input name="host" type="text" size="16" value="127.0.0.1" />
+					:
+					<input name="port" type="text" size="5" value="8080" />
+					<input type="submit" value="Get PAC" />
+				</form>
+				<form action="pac.php" method="get" style="margin:0px;display:inline">
+					<input name="raw" type="submit" value="Get GFWLIST RAW" />
+				</form>
+				<form action="pac.php" method="get" style="margin:0px;display:inline">
+					<input name="rulelist" type="submit" value="Get GFWLIST RULE" />
+				</form>
+			</div>
+		</body>
+		';
+	
+	
+	exit(0);
+
+}
+
 header('Content-Type: text/plain');
 
-if(!empty($_GET['type']))
-	if($_GET['type']=='http')
-		$type='PROXY';
-	else if ($_GET['type']=='socks')
-		$type='SOCKS5';
-	else
-		$type=$_GET['type'];
 
-$host=!empty($_GET['host'])?$_GET['host']:'127.0.0.1';
-$port=!empty($_GET['port'])?$_GET['port']:'8080';
+if($_GET['type']=='http')
+	$type='PROXY';
+else if ($_GET['type']=='socks')
+	$type='SOCKS5';
+else
+	$type=$_GET['type'];
+
+$host=$_GET['host'];
+$port=$_GET['port'];
 $gfwlist_url='http://autoproxy-gfwlist.googlecode.com/svn/trunk/gfwlist.txt';
 
 $ch=curl_init();  
