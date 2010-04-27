@@ -26,6 +26,13 @@ if((!isset($_GET['raw']))&&(!isset($_GET['rulelist']))&&(empty($_GET['type'])||e
 		<head profile="http://gmpg.org/xfn/11">
 			<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 			<title>PTP AutoProxy2PAC</title>
+			<style type="text/css">
+				body {
+					color:#333333;
+					font:0.75em Arial,sans-serif;
+					text-align:center;
+				}
+			</style>
 		</head>
 		<body>
 			<div>
@@ -44,9 +51,11 @@ if((!isset($_GET['raw']))&&(!isset($_GET['rulelist']))&&(empty($_GET['type'])||e
 				<form action="pac.php" method="get" style="margin:0px;display:inline">
 					<input name="raw" type="submit" value="Get GFWLIST RAW" />
 				</form>
+				<!--
 				<form action="pac.php" method="get" style="margin:0px;display:inline">
 					<input name="rulelist" type="submit" value="Get GFWLIST RULE" />
 				</form>
+				-->
 			</div>
 		</body>
 		';
