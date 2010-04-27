@@ -89,10 +89,22 @@ class LocalProxyProcessThread implements Runnable {
 			if (ByteArrayUtil.toString(buff, 0, 7).equalsIgnoreCase("CONNECT")) {
 				// https proxy
 				log.debug("connect read cout: " + readCount);
+				String connectHeaderString = ByteArrayUtil.toString(buff, 0, readCount);
 				log.debug("connect request: "
-						+ ByteArrayUtil.toString(buff, 0, readCount));
+						+ connectHeaderString);
+				
+				String[] connectHeaders = connectHeaderString.split("\\r\\n");
+				String destHost = connectHeaders[0].split("\\s|:")[1];
+				int destPort = Integer.parseInt(connectHeaders[0].split("\\s|:")[2]);
+				
+				log.debug("connect dest host: " + destHost);
+				log.debug("connect dest port: " + destPort);
+				
+				
+				SSLForwardServer sslForwardServer = new SSLForwardServer(destHost, destPort);
+				int sslForwardPort = sslForwardServer.start();
 
-				Socket sslSocket = new Socket("127.0.0.1", 8889);
+				Socket sslSocket = new Socket("127.0.0.1", sslForwardPort);
 				InputStream sslIn = sslSocket.getInputStream();
 				OutputStream sslOut = sslSocket.getOutputStream();
 

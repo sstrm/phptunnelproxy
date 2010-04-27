@@ -28,14 +28,13 @@ import org.apache.log4j.Logger;
 
 import ptp.Config;
 import ptp.local.LocalProxyServer;
-import ptp.local.SSLForwardServer;
 import ptp.pac.PacServer;
 
 public class GUILauncher extends Launcher {
 	private static Logger log = Logger.getLogger(GUILauncher.class);
 
-	private static Thread sslForwarderThread;
-	private static SSLForwardServer sslForwardServer;
+	//private static Thread sslForwarderThread;
+	//private static SSLForwardServer sslForwardServer;
 	private static Thread localProxyThread;
 	private static LocalProxyServer localProxyServer;
 	private static PacServer pacServer;
@@ -50,9 +49,9 @@ public class GUILauncher extends Launcher {
 	}
 
 	public static void startServer() {
-		sslForwardServer = new SSLForwardServer();
-		sslForwarderThread = new Thread(sslForwardServer);
-		sslForwarderThread.start();
+		//sslForwardServer = new SSLForwardServer();
+		//sslForwarderThread = new Thread(sslForwardServer);
+		//sslForwarderThread.start();
 
 		localProxyServer = new LocalProxyServer();
 		localProxyThread = new Thread(localProxyServer);
@@ -69,9 +68,9 @@ public class GUILauncher extends Launcher {
 			return;
 		}
 		
-		if( sslForwardServer == null || sslForwarderThread == null) {
-			return;
-		}
+		//if( sslForwardServer == null || sslForwarderThread == null) {
+			//return;
+		//}
 		
 		if(pacServer == null || pacThread == null) {
 			return;
@@ -84,12 +83,14 @@ public class GUILauncher extends Launcher {
 			log.error(e.getMessage(), e);
 		}
 
+		/*
 		sslForwardServer.stopServer();
 		try {
 			sslForwarderThread.join();
 		} catch (InterruptedException e) {
 			log.error(e.getMessage(), e);
 		}
+		*/
 		
 		pacServer.stopServer();
 		try {
