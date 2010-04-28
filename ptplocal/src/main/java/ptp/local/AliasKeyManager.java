@@ -25,6 +25,12 @@ public class AliasKeyManager implements X509KeyManager {
 	public PrivateKey getPrivateKey(String alias) {
 		try {
 			PrivateKey key = (PrivateKey) keyStore.getKey(alias, ctpassword);
+
+			if (key == null) {
+				key = (PrivateKey) keyStore.getKey("*"
+						+ alias.substring(alias.indexOf('.')), ctpassword);
+			}
+
 			if (key == null) {
 				key = (PrivateKey) keyStore.getKey("ptproot", ctpassword);
 			}
@@ -39,8 +45,10 @@ public class AliasKeyManager implements X509KeyManager {
 			java.security.cert.Certificate[] certs = keyStore
 					.getCertificateChain(alias);
 			if (certs == null || certs.length == 0)
-				certs = keyStore
-				.getCertificateChain("ptproot");
+				certs = keyStore.getCertificateChain("*"
+						+ alias.substring(alias.indexOf('.')));
+			if (certs == null || certs.length == 0)
+				certs = keyStore.getCertificateChain("ptproot");
 			X509Certificate[] x509 = new X509Certificate[certs.length];
 			for (int i = 0; i < certs.length; i++)
 				x509[i] = (X509Certificate) certs[i];
