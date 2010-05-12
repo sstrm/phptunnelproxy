@@ -10,7 +10,7 @@ function reg_encode($str) {
 	$tmp_str=str_replace('.', "\\.", $tmp_str);
 	$tmp_str=str_replace(':', "\\:", $tmp_str);
 	$tmp_str=str_replace('%', "\\%", $tmp_str);
-	$tmp_str=str_replace('*', "\\.*", $tmp_str);
+	$tmp_str=str_replace('*', ".*", $tmp_str);
 	$tmp_str=str_replace('-', "\\-", $tmp_str);
 	$tmp_str=str_replace('&', "\\&", $tmp_str);
 	$tmp_str=str_replace('?', "\\?", $tmp_str);
@@ -132,6 +132,7 @@ function FindProxyForURL(url, host) {
 			{
 				$rule_reg=reg_encode($rule);
 			}
+			echo '//'.$rule_reg."\n\t";
 			echo 'if(new RegExp(decode64("'.base64_encode($rule_reg).'"),"i").test(url)) return '.$return_proxy."\n\t";
 		}
 	?>
