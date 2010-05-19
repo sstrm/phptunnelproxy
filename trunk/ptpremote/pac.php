@@ -212,5 +212,7 @@ function decode64(_1){
 ';
 
 header('Content-Type: text/plain');
+if(!isset($_GET['noCache']))
+	header('Cache-Control:public, max-age=86400');
 echo $js_output;
 ?>
