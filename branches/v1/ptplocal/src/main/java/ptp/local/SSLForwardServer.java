@@ -129,7 +129,7 @@ class SSLForwardServerProcessThread implements Runnable {
 			log.debug("ssl body: "
 					+ ByteArrayUtil
 							.toString(requestBody, 0, requestBody.length));
-			HttpProxy httpProxy = new HttpProxy(destHost, destPort, in, out);
+			HttpProxy httpProxy = new HttpProxy(destHost, destPort, in, out, true);
 			httpProxy.proces(requestHeaders, requestBody);
 
 			in.close();
