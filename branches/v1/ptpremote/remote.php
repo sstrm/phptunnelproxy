@@ -6,7 +6,9 @@ if($_SERVER['REQUEST_METHOD']=='GET') {
 
 $dest_host = $_POST['dest_host'];
 $dest_port = $_POST['dest_port'];
-if($dest_port == 443) {
+$is_ssl = $_POST['is_ssl'];
+
+if($is_ssl == 'true') {
 	if(in_array('ssl', stream_get_transports())) {
 		$dest_host="ssl://".$dest_host;
 	} else {
