@@ -89,19 +89,20 @@ class LocalProxyProcessThread implements Runnable {
 			if (ByteArrayUtil.toString(buff, 0, 7).equalsIgnoreCase("CONNECT")) {
 				// https proxy
 				log.debug("connect read cout: " + readCount);
-				String connectHeaderString = ByteArrayUtil.toString(buff, 0, readCount);
-				log.debug("connect request: "
-						+ connectHeaderString);
-				
+				String connectHeaderString = ByteArrayUtil.toString(buff, 0,
+						readCount);
+				log.debug("connect request: " + connectHeaderString);
+
 				String[] connectHeaders = connectHeaderString.split("\\r\\n");
 				String destHost = connectHeaders[0].split("\\s|:")[1];
-				int destPort = Integer.parseInt(connectHeaders[0].split("\\s|:")[2]);
-				
+				int destPort = Integer.parseInt(connectHeaders[0]
+						.split("\\s|:")[2]);
+
 				log.debug("connect dest host: " + destHost);
 				log.debug("connect dest port: " + destPort);
-				
-				
-				SSLForwardServer sslForwardServer = new SSLForwardServer(destHost, destPort);
+
+				SSLForwardServer sslForwardServer = new SSLForwardServer(
+						destHost, destPort);
 				int sslForwardPort = sslForwardServer.start();
 
 				Socket sslSocket = new Socket("127.0.0.1", sslForwardPort);
@@ -119,9 +120,11 @@ class LocalProxyProcessThread implements Runnable {
 				outToBrowser.flush();
 
 				Thread pipeThreadFromBrowserToSSLServer = new Thread(
-						new PipeThread(inFromBrowser, sslOut, "1"));
+						new PipeThread(inFromBrowser, sslOut,
+								"from browser to ssl"));
 				Thread pipeThreadFromSSLServerToBrowser = new Thread(
-						new PipeThread(sslIn, outToBrowser, "2"));
+						new PipeThread(sslIn, outToBrowser,
+								"from ssl to browser"));
 				pipeThreadFromBrowserToSSLServer.start();
 				pipeThreadFromSSLServerToBrowser.start();
 				try {
@@ -207,7 +210,7 @@ class PipeThread implements Runnable {
 				}
 			}
 		} catch (final Exception e) {
-			log.error(title + e.getMessage(), e);
+			log.debug(title + ":" + e.getMessage(), e);
 
 		} finally {
 			try {
