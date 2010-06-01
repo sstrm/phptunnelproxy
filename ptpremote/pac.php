@@ -37,7 +37,7 @@ if((!isset($_GET['raw']))&&(!isset($_GET['rulelist']))&&(empty($_GET['type'])||e
 		<body>
 			<div>
 				<h3>Setup your pac</h3>
-				<form action="pac.php" method="get" style="margin:0px;display:inline">
+				<form action="" method="get" style="margin:0px;display:inline">
 					Proxy Server:
 					<select name="type">
 						<option value="http">HTTP</option>
@@ -48,10 +48,10 @@ if((!isset($_GET['raw']))&&(!isset($_GET['rulelist']))&&(empty($_GET['type'])||e
 					<input name="port" type="text" size="5" value="8080" />
 					<input type="submit" value="Get PAC" />
 				</form>
-				<form action="pac.php" method="get" style="margin:0px;display:inline">
+				<form action="" method="get" style="margin:0px;display:inline">
 					<input name="raw" type="submit" value="Get GFWLIST RAW" />
 				</form>
-				<form action="pac.php" method="get" style="margin:0px;display:inline">
+				<form action="" method="get" style="margin:0px;display:inline">
 					<input name="rulelist" type="submit" value="Get GFWLIST RULE" />
 				</form>
 			</div>
@@ -214,5 +214,6 @@ function decode64(_1){
 header('Content-Type: text/plain');
 if(!isset($_GET['noCache']))
 	header('Cache-Control:public, max-age=86400');
+header('Content-Length: '.strlen($js_output));
 echo $js_output;
 ?>
