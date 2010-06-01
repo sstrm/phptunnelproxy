@@ -21,13 +21,16 @@ public class HttpProxy {
 	int destPort;
 	DataInputStream inFromBrowser;
 	DataOutputStream outToBrowser;
+	boolean isSSL;
 
 	public HttpProxy(String destHost, int destPort,
-			DataInputStream inFromBrowser, DataOutputStream outToBrowser) {
+			DataInputStream inFromBrowser, DataOutputStream outToBrowser,
+			boolean isSSL) {
 		this.destHost = destHost;
 		this.destPort = destPort;
 		this.inFromBrowser = inFromBrowser;
 		this.outToBrowser = outToBrowser;
+		this.isSSL = isSSL;
 	}
 
 	private void requestRemote(byte[] data, String destHost, int destPort,
@@ -39,8 +42,8 @@ public class HttpProxy {
 				data.length));
 
 		byte[] postData = ("request_data=" + requestBase64String
-				+ "&dest_host=" + destHost + "&dest_port=" + destPort)
-				.getBytes();
+				+ "&dest_host=" + destHost + "&dest_port=" + destPort
+				+ "&is_ssl=" + isSSL).getBytes();
 
 		log.debug("request: "
 				+ ByteArrayUtil.toString(postData, 0, postData.length));

@@ -156,7 +156,7 @@ class LocalProxyProcessThread implements Runnable {
 				log.info("destPort: " + destPort);
 
 				HttpProxy httpProxy = new HttpProxy(destHost, destPort,
-						inFromBrowser, outToBrowser);
+						inFromBrowser, outToBrowser, false);
 				httpProxy.proces(requestHeaders, requestBody);
 			}
 
