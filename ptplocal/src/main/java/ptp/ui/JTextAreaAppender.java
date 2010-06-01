@@ -1,10 +1,11 @@
 package ptp.ui;
 
 import javax.swing.JTextArea;
-import javax.swing.text.Document;
+import javax.swing.text.BadLocationException;
 
 import org.apache.log4j.Appender;
 import org.apache.log4j.AppenderSkeleton;
+import org.apache.log4j.Layout;
 import org.apache.log4j.Logger;
 import org.apache.log4j.spi.LoggingEvent;
 
@@ -12,9 +13,8 @@ import ptp.Config;
 
 public class JTextAreaAppender extends AppenderSkeleton {
 
-	protected JTextArea textArea;
-	protected int entries;
-	protected int maxEntries;
+	private JTextArea textArea;
+	private int lines;
 
 	public static Appender getAppender(String appenderName) {
 		return getAppender(appenderName, null);
@@ -37,20 +37,8 @@ public class JTextAreaAppender extends AppenderSkeleton {
 	}
 
 	public JTextAreaAppender() {
-		this(null);
-	}
-
-	public JTextAreaAppender(JTextArea textArea) {
-		this(textArea, 1);
-	}
-
-	public JTextAreaAppender(JTextArea textArea, int maxEntries) {
-
-		this.entries = 0;
-		this.maxEntries = Integer.parseInt(Config.getIns().getValue(
-				"ptp.local.gui.entries.max", "100"));
-
-		setTextArea(textArea);
+		this.lines = Integer.parseInt(Config.getIns().getValue(
+				"ptp.local.gui.log.lines", "100"));
 	}
 
 	public JTextArea getTextArea() {
@@ -61,68 +49,43 @@ public class JTextAreaAppender extends AppenderSkeleton {
 		this.textArea = textArea;
 	}
 
-	public int getMaxEntries() {
-		return this.maxEntries;
-	}
-
-	/**
-	 * Sets the maximum number of logging entries.
-	 * 
-	 * @param value
-	 *            - maximum number of logging entries. This value is ignored if
-	 *            the component supports just 1 line.
-	 */
-	public void setMaxEntries(int value) {
-		if (this.entries > value) {
-			// the new maxEntry value is smaller than the actual entry counter
-			// we have to delete the oldest entries
-			int toomuch = this.entries - value;
-
-			try {
-				Document doc = textArea.getDocument();
-				int endOfs = textArea.getLineEndOffset(toomuch - 1);
-				int docLen = doc.getLength();
-				// String docText = textArea.getText();
-				if (docLen < endOfs)
-					doc.remove(0, docLen);
-				else
-					doc.remove(0, endOfs);
-				textArea.setCaretPosition(doc.getLength());
-			} catch (Exception x) {
-			}
-
-			this.entries = value;
-		}
-		this.maxEntries = value;
-	}
-
 	public boolean requiresLayout() {
 		return true;
 	}
 
 	public void append(LoggingEvent event) {
 		String text = this.layout.format(event);
-		try {
-			Document doc = textArea.getDocument();
-			if (entries == maxEntries) {
-				// Delete 1 line
-				int endOfs = textArea.getLineEndOffset(0);
-				int docLen = doc.getLength();
-				// String docText = textArea.getText();
-				if (docLen < endOfs)
-					doc.remove(0, docLen);
-				else
-					doc.remove(0, endOfs);
-				entries -= 1;
-			}
-			textArea.append(text);
-			if (entries == 0)
-				doc.remove(1, 1);
-			textArea.setCaretPosition(doc.getLength());
-		} catch (Exception x) {
-		}
+		appendText(text);
 
-		entries += 1;
+		if (layout.ignoresThrowable()) {
+			String[] s = event.getThrowableStrRep();
+			if (s != null) {
+				int len = s.length;
+				for (int i = 0; i < len; i++) {
+					appendText(s[i]);
+					appendText(Layout.LINE_SEP);
+				}
+			}
+		}
+		textArea.setCaretPosition(textArea.getDocument().getLength());
+	}
+
+	private void appendText(String text) {
+		textArea.append(text);
+		int overLines = textArea.getLineCount() - this.lines;
+		while (overLines > 0) {
+			try {
+				int endOfs = textArea.getLineEndOffset(0);
+				int docLen = textArea.getDocument().getLength();
+				if (docLen < endOfs)
+					textArea.getDocument().remove(0, docLen);
+				else
+					textArea.getDocument().remove(0, endOfs);
+				
+				overLines--;
+			} catch (BadLocationException e) {
+			}
+		}
 
 	}
 
@@ -132,7 +95,6 @@ public class JTextAreaAppender extends AppenderSkeleton {
 	 */
 	public void reset() {
 		textArea.setText("");
-		this.entries = 0;
 	}
 
 	public void close() {
