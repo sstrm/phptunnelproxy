@@ -26,7 +26,7 @@ public abstract class Launcher {
 		Enumeration<?> sysPropNames = sysProps.propertyNames();
 		while (sysPropNames.hasMoreElements()) {
 			String key = (String) sysPropNames.nextElement();
-			log.info("System Property: " + key + " = "
+			log.debug("System Property: " + key + " = "
 					+ sysProps.getProperty(key));
 		}
 	}

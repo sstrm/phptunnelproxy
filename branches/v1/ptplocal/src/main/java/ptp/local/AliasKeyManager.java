@@ -22,13 +22,25 @@ public class AliasKeyManager implements X509KeyManager {
 		this.ctpassword = ctpassword;
 	}
 
+	private String getCommonAlias(String alias) {
+		String[] tokens = alias.split("\\.");
+		if (tokens.length > 2) {
+			return "*." + tokens[tokens.length - 2] + "."
+					+ tokens[tokens.length - 1];
+		} else if (tokens.length == 2) {
+			return "*." + alias;
+		} else {
+			return alias;
+		}
+	}
+
 	public PrivateKey getPrivateKey(String alias) {
 		try {
 			PrivateKey key = (PrivateKey) keyStore.getKey(alias, ctpassword);
 
 			if (key == null) {
-				key = (PrivateKey) keyStore.getKey("*"
-						+ alias.substring(alias.indexOf('.')), ctpassword);
+				key = (PrivateKey) keyStore.getKey(getCommonAlias(alias),
+						ctpassword);
 			}
 
 			if (key == null) {
@@ -45,8 +57,7 @@ public class AliasKeyManager implements X509KeyManager {
 			java.security.cert.Certificate[] certs = keyStore
 					.getCertificateChain(alias);
 			if (certs == null || certs.length == 0)
-				certs = keyStore.getCertificateChain("*"
-						+ alias.substring(alias.indexOf('.')));
+				certs = keyStore.getCertificateChain(getCommonAlias(alias));
 			if (certs == null || certs.length == 0)
 				certs = keyStore.getCertificateChain("ptproot");
 			X509Certificate[] x509 = new X509Certificate[certs.length];
