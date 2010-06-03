@@ -135,7 +135,8 @@ public class PacServer implements Runnable {
 					PacServer.class.getResource("/etc/gfwlist.txt").toString()));
 			log.debug(Config.getIns().getValue("ptp.local.pac.gfwlist"));
 			log.info("gfwlist: " + gfwlistUrl.toString());
-			URLConnection gfwlistConn = gfwlistUrl.openConnection();
+			URLConnection gfwlistConn = gfwlistUrl.openConnection(Config
+					.getIns().getProxy());
 			gfwlistR = new BufferedReader(new InputStreamReader(gfwlistConn
 					.getInputStream()));
 		} catch (IOException e1) {

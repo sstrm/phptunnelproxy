@@ -50,7 +50,7 @@ public class HttpProxy {
 
 		URL remotePhpUrl = new URL(remotePhp);
 		HttpURLConnection remotePhpConn = (HttpURLConnection) remotePhpUrl
-				.openConnection();
+				.openConnection(Config.getIns().getProxy());
 		remotePhpConn.setRequestMethod("POST");
 		remotePhpConn.setRequestProperty("Content-Type",
 				"application/x-www-form-urlencoded");
