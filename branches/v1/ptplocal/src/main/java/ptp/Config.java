@@ -2,6 +2,9 @@ package ptp;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.net.Proxy;
+import java.net.SocketAddress;
 import java.util.Properties;
 
 import org.apache.log4j.Logger;
@@ -54,13 +57,34 @@ public class Config {
 	public String getIp(String domain) {
 		return ipMap.getProperty(domain, domain);
 	}
-	
+
 	public String getVersion() {
 		return appProp.getProperty("build.version", "0.0.0");
 	}
-	
+
 	public String getCompileDate() {
 		return appProp.getProperty("app.compile.time", "2012-12-21 00:00");
+	}
+
+	public Proxy getProxy() {
+		Proxy proxy = null;
+		boolean useProxy = Boolean.parseBoolean(this.getValue(
+				"ptp.local.bypass.proxy.inuse", "false"));
+		if (useProxy) {
+			Proxy.Type proxyType = Proxy.Type.valueOf(this.getValue(
+					"ptp.local.bypass.proxy.type", "HTTP").toUpperCase());
+			String proxyHost = appProp.getProperty("ptp.local.bypass.proxy.host",
+					"127.0.0.1");
+			int proxyPort = Integer.parseInt(this.getValue(
+					"ptp.local.bypass.proxy.port", "8080"));
+			SocketAddress proxyAddress = new InetSocketAddress(proxyHost,
+					proxyPort);
+			proxy = new Proxy(proxyType, proxyAddress);
+		} else {
+			proxy = Proxy.NO_PROXY;
+		}
+		log.info("use proxy: " + proxy.toString());
+		return proxy;
 	}
 
 }
