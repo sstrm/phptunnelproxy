@@ -140,6 +140,7 @@ public class PacServer implements Runnable {
 					.getInputStream()));
 		} catch (IOException e1) {
 			log.error(e1.getMessage(), e1);
+			return "";
 		}
 
 		StringBuilder gfwlistContent = new StringBuilder();
@@ -151,6 +152,7 @@ public class PacServer implements Runnable {
 			}
 		} catch (IOException e) {
 			log.error(e.getMessage(), e);
+			return "";
 		}
 
 		return gfwlistContent.toString();
