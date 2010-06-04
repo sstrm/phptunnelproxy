@@ -13,6 +13,8 @@ public class Config {
 	private static Logger log = Logger.getLogger(Config.class);
 
 	private static Config ins = new Config();
+	
+	private Proxy proxy = null;
 
 	Properties prop = null;
 	Properties ipMap = null;
@@ -31,6 +33,23 @@ public class Config {
 					.getResourceAsStream("/etc/app.properties"));
 		} catch (IOException e) {
 			log.error(e.getMessage(), e);
+		}
+		
+		//build proxy object
+		boolean useProxy = Boolean.parseBoolean(this.getValue(
+				"ptp.local.bypass.proxy.inuse", "false"));
+		if (useProxy) {
+			Proxy.Type proxyType = Proxy.Type.valueOf(this.getValue(
+					"ptp.local.bypass.proxy.type", "HTTP").toUpperCase());
+			String proxyHost = appProp.getProperty("ptp.local.bypass.proxy.host",
+					"127.0.0.1");
+			int proxyPort = Integer.parseInt(this.getValue(
+					"ptp.local.bypass.proxy.port", "8080"));
+			SocketAddress proxyAddress = new InetSocketAddress(proxyHost,
+					proxyPort);
+			proxy = new Proxy(proxyType, proxyAddress);
+		} else {
+			proxy = Proxy.NO_PROXY;
 		}
 	}
 
@@ -67,22 +86,6 @@ public class Config {
 	}
 
 	public Proxy getProxy() {
-		Proxy proxy = null;
-		boolean useProxy = Boolean.parseBoolean(this.getValue(
-				"ptp.local.bypass.proxy.inuse", "false"));
-		if (useProxy) {
-			Proxy.Type proxyType = Proxy.Type.valueOf(this.getValue(
-					"ptp.local.bypass.proxy.type", "HTTP").toUpperCase());
-			String proxyHost = appProp.getProperty("ptp.local.bypass.proxy.host",
-					"127.0.0.1");
-			int proxyPort = Integer.parseInt(this.getValue(
-					"ptp.local.bypass.proxy.port", "8080"));
-			SocketAddress proxyAddress = new InetSocketAddress(proxyHost,
-					proxyPort);
-			proxy = new Proxy(proxyType, proxyAddress);
-		} else {
-			proxy = Proxy.NO_PROXY;
-		}
 		log.info("use proxy: " + proxy.toString());
 		return proxy;
 	}
