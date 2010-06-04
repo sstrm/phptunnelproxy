@@ -106,19 +106,19 @@
 	<target name="bin-dist-pkg" depends="jar" description="build a binary package for distribution">
 		<mkdir dir="${dist.dir}" />
 		<tar destfile="${dist.dir}/${app.name}-${build.version}-bin.tar">
-			<tarfileset prefix="${app.name}-${build.version}/lib" dir="${lib.dir}">
+			<tarfileset prefix="${app.name}/lib" dir="${lib.dir}">
 				<exclude name="ant-task/" />
 				<exclude name="junit*.jar" />
 				<exclude name="*sources*" />
 			</tarfileset>
-			<tarfileset fullpath="${app.name}-${build.version}/lib/${app.name}-${build.version}.jar" file="${dist.dir}/${app.name}-${build.version}.jar" />
-			<tarfileset prefix="${app.name}-${build.version}" dir="${shell.dir}" filemode="755" />
-			<tarfileset prefix="${app.name}-${build.version}/docs" dir="${doc.dir}" />
-			<tarfileset prefix="${app.name}-${build.version}/etc" dir="${etc.dir}">
+			<tarfileset fullpath="${app.name}/lib/${app.name}-${build.version}.jar" file="${dist.dir}/${app.name}-${build.version}.jar" />
+			<tarfileset prefix="${app.name}" dir="${shell.dir}" filemode="755" />
+			<tarfileset prefix="${app.name}/docs" dir="${doc.dir}" />
+			<tarfileset prefix="${app.name}/etc" dir="${etc.dir}">
 				<exclude name="log4j.properties" />
 			</tarfileset>
-			<tarfileset prefix="${app.name}-${build.version}" file="${basedir}/LICENSE.txt" />
-			<tarfileset prefix="${app.name}-${build.version}" file="${basedir}/README.txt" />
+			<tarfileset prefix="${app.name}" file="${basedir}/LICENSE.txt" />
+			<tarfileset prefix="${app.name}" file="${basedir}/README.txt" />
 		</tar>
 		<bzip2 src="${dist.dir}/${app.name}-${build.version}-bin.tar" destfile="${dist.dir}/${app.name}-${build.version}-bin.tar.bz2"/>
 		<delete file="${dist.dir}/${app.name}-${build.version}-bin.tar" />

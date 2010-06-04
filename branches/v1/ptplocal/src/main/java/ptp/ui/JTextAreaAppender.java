@@ -54,39 +54,42 @@ public class JTextAreaAppender extends AppenderSkeleton {
 	}
 
 	public void append(LoggingEvent event) {
-		String text = this.layout.format(event);
-		appendText(text);
+		if (textArea != null) {
+			String text = this.layout.format(event);
+			appendText(text);
 
-		if (layout.ignoresThrowable()) {
-			String[] s = event.getThrowableStrRep();
-			if (s != null) {
-				int len = s.length;
-				for (int i = 0; i < len; i++) {
-					appendText(s[i]);
-					appendText(Layout.LINE_SEP);
+			if (layout.ignoresThrowable()) {
+				String[] s = event.getThrowableStrRep();
+				if (s != null) {
+					int len = s.length;
+					for (int i = 0; i < len; i++) {
+						appendText(s[i]);
+						appendText(Layout.LINE_SEP);
+					}
 				}
 			}
+			textArea.setCaretPosition(textArea.getDocument().getLength());
 		}
-		textArea.setCaretPosition(textArea.getDocument().getLength());
 	}
 
 	private void appendText(String text) {
-		textArea.append(text);
-		int overLines = textArea.getLineCount() - this.lines;
-		while (overLines > 0) {
-			try {
-				int endOfs = textArea.getLineEndOffset(0);
-				int docLen = textArea.getDocument().getLength();
-				if (docLen < endOfs)
-					textArea.getDocument().remove(0, docLen);
-				else
-					textArea.getDocument().remove(0, endOfs);
-				
-				overLines--;
-			} catch (BadLocationException e) {
+		if (textArea != null) {
+			textArea.append(text);
+			int overLines = textArea.getLineCount() - this.lines;
+			while (overLines > 0) {
+				try {
+					int endOfs = textArea.getLineEndOffset(0);
+					int docLen = textArea.getDocument().getLength();
+					if (docLen < endOfs)
+						textArea.getDocument().remove(0, docLen);
+					else
+						textArea.getDocument().remove(0, endOfs);
+
+					overLines--;
+				} catch (BadLocationException e) {
+				}
 			}
 		}
-
 	}
 
 	/**
