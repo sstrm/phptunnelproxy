@@ -1,9 +1,9 @@
 package ptp.util;
 
 import java.io.BufferedWriter;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 
 import org.apache.log4j.Logger;
@@ -11,14 +11,14 @@ import org.apache.log4j.Logger;
 public class HttpUtil {
 	private static Logger log = Logger.getLogger(HttpUtil.class);
 
-	public static int readHttpHead(byte[] buff, DataInputStream inFromBrowser)
+	public static int readHttpHead(byte[] buff, InputStream in)
 			throws IOException {
 		int index = 0;
 		int findEnd = 0;
 		while (findEnd < 4) {
 			byte b = 0;
 			try {
-				b = inFromBrowser.readByte();
+				b = (byte) in.read();
 			} catch (IOException e) {
 				throw e;
 			}
@@ -33,8 +33,7 @@ public class HttpUtil {
 		return index;
 	}
 
-	public static void writeErrorResponse(DataOutputStream outToBrowser,
-			String msg) {
+	public static void writeErrorResponse(OutputStream outToBrowser, String msg) {
 		BufferedWriter w = new BufferedWriter(new OutputStreamWriter(
 				outToBrowser));
 
