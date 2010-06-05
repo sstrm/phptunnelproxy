@@ -1,7 +1,7 @@
 package ptp.net.mp;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -17,11 +17,11 @@ final class GetMethodProcesser extends MethodProcesser {
 
 	private String[] headers;
 	@SuppressWarnings("unused")
-	private DataInputStream inFromBrowser;
-	private DataOutputStream outToBrowser;
+	private InputStream inFromBrowser;
+	private OutputStream outToBrowser;
 
-	GetMethodProcesser(String[] headers, DataInputStream inFromBrowser,
-			DataOutputStream outToBrowser) {
+	GetMethodProcesser(String[] headers, InputStream inFromBrowser,
+			OutputStream outToBrowser) {
 		this.headers = headers;
 		this.inFromBrowser = inFromBrowser;
 		this.outToBrowser = outToBrowser;
@@ -72,7 +72,7 @@ final class GetMethodProcesser extends MethodProcesser {
 		newRequestHeaderString.append("\r\n");
 
 		log.info("Request Headers: ");
-		log.info("\n" + newRequestHeaderString);
+		log.debug("\n" + newRequestHeaderString);
 
 		byte[] newRequestHeaderData = null;
 		try {
