@@ -71,4 +71,10 @@ public class ByteArrayUtil {
 			to[i+toOff] = from[i + fromOff];
 		}
 	}
+	
+	public static void decrypt(byte[] buff, int off, int len, byte key) {
+		for(int i=0; i<len; i++) {
+			buff[off+i] = (byte)(buff[off+i] -key);
+		}
+	}
 }
