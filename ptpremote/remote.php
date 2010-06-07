@@ -7,6 +7,7 @@ if($_SERVER['REQUEST_METHOD']=='GET') {
 $dest_host = $_POST['dest_host'];
 $dest_port = $_POST['dest_port'];
 $is_ssl = $_POST['is_ssl'];
+$key = $_POST['key'];
 
 if($is_ssl == 'true') {
 	if(in_array('ssl', stream_get_transports())) {
@@ -25,7 +26,11 @@ if (!$fp) {
 	fwrite($fp, $request);
 	while (!feof($fp)) {
 		$buffer = fread($fp, 1024);
-		echo $buffer;
+		$encryped_buffer='';
+		for($i = 0; $i < strlen($buffer); $i++){
+			$encryped_buffer.= chr(ord($buffer[$i]) + $key);
+		}
+		echo $encryped_buffer;
 	}
 	fclose($fp);
 }
