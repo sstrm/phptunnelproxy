@@ -40,10 +40,12 @@ public class HttpProxy {
 
 		String requestBase64String = new String(Base64Coder.encode(data, 0,
 				data.length));
+		
+		byte key = (byte) ((Math.random() * (100)) + 1);
 
 		byte[] postData = ("request_data=" + requestBase64String
 				+ "&dest_host=" + destHost + "&dest_port=" + destPort
-				+ "&is_ssl=" + isSSL).getBytes();
+				+ "&is_ssl=" + isSSL + "&key=" + key).getBytes();
 
 		log.debug("request: "
 				+ ByteArrayUtil.toString(postData, 0, postData.length));
@@ -73,6 +75,7 @@ public class HttpProxy {
 				"ptp.buff.size", "1024"));
 		byte[] phpByte = new byte[phpByteSize];
 		while ((readCount = inFromPhp.read(phpByte, 0, phpByteSize)) != -1) {
+			ByteArrayUtil.decrypt(phpByte, 0, readCount, key);
 			outToBrowser.write(phpByte, 0, readCount);
 			outToBrowser.flush();
 			log.debug(ByteArrayUtil.toString(phpByte, 0, readCount));
