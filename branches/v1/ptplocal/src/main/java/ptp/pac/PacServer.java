@@ -137,6 +137,8 @@ public class PacServer implements Runnable {
 			log.info("gfwlist: " + gfwlistUrl.toString());
 			URLConnection gfwlistConn = gfwlistUrl.openConnection(Config
 					.getIns().getProxy());
+			gfwlistConn.addRequestProperty("User-Agent", Config.getIns()
+					.getUserAgent());
 			gfwlistR = new BufferedReader(new InputStreamReader(gfwlistConn
 					.getInputStream()));
 		} catch (IOException e1) {
