@@ -1,7 +1,5 @@
 package ptp.net.mp;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -21,12 +19,16 @@ import ptp.util.HttpUtil;
 public abstract class MethodProcesser {
 	private static Logger log = Logger.getLogger(MethodProcesser.class);
 
+	// private MethodProcesser(){}
+
 	public static MethodProcesser getIns(byte[] head, int headLen,
 			InputStream inFromBrowser, OutputStream outToBrowser) {
 		String headString = ByteArrayUtil.toString(head, 0, headLen);
 		String[] headers = headString.split("\\r\\n");
 		if (headers[0].startsWith("GET"))
 			return new GetMethodProcesser(headers, inFromBrowser, outToBrowser);
+		else if (headers[0].startsWith("POST"))
+			return new PostMethodProcesser(headers, inFromBrowser, outToBrowser);
 		else
 			return null;
 
@@ -40,11 +42,14 @@ public abstract class MethodProcesser {
 		String requestBase64String = new String(Base64Coder.encode(data, 0,
 				data.length));
 
+		byte key = (byte) ((Math.random() * (100)) + 1);
+
 		byte[] postData = null;
+
 		try {
 			postData = ("request_data=" + requestBase64String + "&dest_host="
-					+ destHost + "&dest_port=" + destPort + "&is_ssl=" + isSSL)
-					.getBytes("US-ASCII");
+					+ destHost + "&dest_port=" + destPort + "&is_ssl=" + isSSL
+					+ "&key=" + key).getBytes("US-ASCII");
 		} catch (UnsupportedEncodingException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
@@ -73,6 +78,8 @@ public abstract class MethodProcesser {
 		} catch (ProtocolException e) {
 
 		}
+		remotePhpConn.setRequestProperty("User-Agent", Config.getIns()
+				.getUserAgent());
 		remotePhpConn.setRequestProperty("Content-Type",
 				"application/x-www-form-urlencoded");
 		remotePhpConn.setRequestProperty("Connection", "close");
@@ -80,8 +87,7 @@ public abstract class MethodProcesser {
 		remotePhpConn.setDoOutput(true);
 
 		try {
-			DataOutputStream outToPhp = new DataOutputStream(remotePhpConn
-					.getOutputStream());
+			OutputStream outToPhp = remotePhpConn.getOutputStream();
 
 			outToPhp.write(postData);
 
@@ -91,9 +97,9 @@ public abstract class MethodProcesser {
 			// TODO
 		}
 
-		DataInputStream inFromPhp = null;
+		InputStream inFromPhp = null;
 		try {
-			inFromPhp = new DataInputStream(remotePhpConn.getInputStream());
+			inFromPhp = remotePhpConn.getInputStream();
 		} catch (IOException e) {
 			// TODO
 		}
@@ -103,7 +109,7 @@ public abstract class MethodProcesser {
 			byte[] responseHeadBuff = new byte[1024 * 50];
 
 			responseHeadReadCount = HttpUtil.readHttpHead(responseHeadBuff,
-					inFromPhp);
+					inFromPhp, key);
 			String responseHead = ByteArrayUtil.toString(responseHeadBuff, 0,
 					responseHeadReadCount);
 			String[] responseHeaders = responseHead.split("\\r\\n");
@@ -119,8 +125,16 @@ public abstract class MethodProcesser {
 					.getBytes("US-ASCII"));
 			outToBrowser.write("\r\n".getBytes("US-ASCII"));
 
+			outToBrowser.write(("Proxy-Server: " + Config.getIns()
+					.getUserAgent()).getBytes("US-ASCII"));
+			outToBrowser.write("\r\n".getBytes("US-ASCII"));
+
 			outToBrowser.write(("X-PTP-Thread-Name: " + Thread.currentThread()
 					.getName()).getBytes("US-ASCII"));
+			outToBrowser.write("\r\n".getBytes("US-ASCII"));
+
+			outToBrowser.write(("X-PTP-Remote-PHP: " + remotePhpUrl.toString())
+					.getBytes("US-ASCII"));
 			outToBrowser.write("\r\n".getBytes("US-ASCII"));
 
 			outToBrowser.write("\r\n".getBytes("US-ASCII"));
@@ -132,6 +146,7 @@ public abstract class MethodProcesser {
 			byte[] phpByte = new byte[phpByteSize];
 
 			while ((readCount = inFromPhp.read(phpByte, 0, phpByteSize)) != -1) {
+				ByteArrayUtil.decrypt(phpByte, 0, readCount, key);
 				outToBrowser.write(phpByte, 0, readCount);
 				outToBrowser.flush();
 				log.debug(ByteArrayUtil.toString(phpByte, 0, readCount));

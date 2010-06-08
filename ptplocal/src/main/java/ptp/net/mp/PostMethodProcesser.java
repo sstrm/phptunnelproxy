@@ -1,5 +1,6 @@
 package ptp.net.mp;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
@@ -9,18 +10,19 @@ import java.net.URL;
 import org.apache.log4j.Logger;
 
 import ptp.Config;
+import ptp.util.ByteArrayUtil;
 import ptp.util.HttpUtil;
 import ptp.util.URLUtil;
 
-final class GetMethodProcesser extends MethodProcesser {
-	private static Logger log = Logger.getLogger(GetMethodProcesser.class);
+public class PostMethodProcesser extends MethodProcesser {
+
+	private static Logger log = Logger.getLogger(PostMethodProcesser.class);
 
 	private String[] headers;
-	@SuppressWarnings("unused")
 	private InputStream inFromBrowser;
 	private OutputStream outToBrowser;
 
-	GetMethodProcesser(String[] headers, InputStream inFromBrowser,
+	PostMethodProcesser(String[] headers, InputStream inFromBrowser,
 			OutputStream outToBrowser) {
 		this.headers = headers;
 		this.inFromBrowser = inFromBrowser;
@@ -48,12 +50,14 @@ final class GetMethodProcesser extends MethodProcesser {
 		int destPort = requestURL.getPort() != -1 ? requestURL.getPort() : 80;
 		log.info("destPort: " + destPort);
 
-		String method = headers[0].split("\\s")[0];
+		String method = "POST";
 		String resourc = URLUtil.getResource(headers[0].split("\\s")[1]);
 		log.info("destPath: " + resourc);
 		String version = headers[0].split("\\s")[2];
 		newRequestHeaderString.append(method).append(" ").append(resourc)
 				.append(" ").append(version).append("\r\n");
+
+		int postContentLength = 0;
 
 		for (int i = 0; i < headers.length; i++) {
 			if (i == 0) {
@@ -64,15 +68,17 @@ final class GetMethodProcesser extends MethodProcesser {
 				continue;
 			} else if (headers[i].startsWith("Keep-Alive")) {
 				continue;
-			} else {
-				newRequestHeaderString.append(headers[i]).append("\r\n");
+			} else if (headers[i].startsWith("Content-Length")) {
+				postContentLength = Integer
+						.parseInt(headers[i].split(":\\s")[1]);
+				log.debug("post content length: " + postContentLength);
 			}
+			newRequestHeaderString.append(headers[i]).append("\r\n");
 		}
 		newRequestHeaderString.append("Connection: close").append("\r\n");
 		newRequestHeaderString.append("\r\n");
 
-		log.info("Request Headers: ");
-		log.debug("\n" + newRequestHeaderString);
+		log.debug("Request Headers: \n" + newRequestHeaderString);
 
 		byte[] newRequestHeaderData = null;
 		try {
@@ -82,9 +88,29 @@ final class GetMethodProcesser extends MethodProcesser {
 
 		}
 
-		requestRemote(newRequestHeaderData, destHost, destPort, false,
-				outToBrowser);
-		log.info("get method process done!");
+		byte[] newRequestBodyData = new byte[postContentLength];
+		int postContentReadCount = 0;
+		while (postContentReadCount < postContentLength) {
+			try {
+				postContentReadCount += inFromBrowser.read(newRequestBodyData,
+						postContentReadCount, postContentLength
+								- postContentReadCount);
+
+				log.debug("postContentReadCount: " + postContentReadCount);
+			} catch (IOException e) {
+				log.error(e.getMessage(), e);
+			}
+		}
+
+		byte[] newRequestData = new byte[newRequestHeaderData.length
+				+ newRequestBodyData.length];
+		ByteArrayUtil.copy(newRequestHeaderData, 0, newRequestData, 0,
+				newRequestHeaderData.length);
+		ByteArrayUtil.copy(newRequestBodyData, 0, newRequestData,
+				newRequestHeaderData.length, newRequestBodyData.length);
+
+		requestRemote(newRequestData, destHost, destPort, false, outToBrowser);
+		log.info("post method process done!");
 	}
 
 }
