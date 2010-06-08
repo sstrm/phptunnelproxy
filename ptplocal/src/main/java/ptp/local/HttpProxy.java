@@ -40,7 +40,7 @@ public class HttpProxy {
 
 		String requestBase64String = new String(Base64Coder.encode(data, 0,
 				data.length));
-		
+
 		byte key = (byte) ((Math.random() * (100)) + 1);
 
 		byte[] postData = ("request_data=" + requestBase64String
@@ -54,6 +54,8 @@ public class HttpProxy {
 		HttpURLConnection remotePhpConn = (HttpURLConnection) remotePhpUrl
 				.openConnection(Config.getIns().getProxy());
 		remotePhpConn.setRequestMethod("POST");
+		remotePhpConn.setRequestProperty("User-Agent", Config.getIns()
+				.getUserAgent());
 		remotePhpConn.setRequestProperty("Content-Type",
 				"application/x-www-form-urlencoded");
 		remotePhpConn.setRequestProperty("Connection", "close");

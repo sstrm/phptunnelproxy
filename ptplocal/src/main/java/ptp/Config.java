@@ -13,7 +13,7 @@ public class Config {
 	private static Logger log = Logger.getLogger(Config.class);
 
 	private static Config ins = new Config();
-	
+
 	private Proxy proxy = null;
 
 	Properties prop = null;
@@ -34,15 +34,15 @@ public class Config {
 		} catch (IOException e) {
 			log.error(e.getMessage(), e);
 		}
-		
-		//build proxy object
+
+		// build proxy object
 		boolean useProxy = Boolean.parseBoolean(this.getValue(
 				"ptp.local.bypass.proxy.inuse", "false"));
 		if (useProxy) {
 			Proxy.Type proxyType = Proxy.Type.valueOf(this.getValue(
 					"ptp.local.bypass.proxy.type", "HTTP").toUpperCase());
-			String proxyHost = appProp.getProperty("ptp.local.bypass.proxy.host",
-					"127.0.0.1");
+			String proxyHost = appProp.getProperty(
+					"ptp.local.bypass.proxy.host", "127.0.0.1");
 			int proxyPort = Integer.parseInt(this.getValue(
 					"ptp.local.bypass.proxy.port", "8080"));
 			SocketAddress proxyAddress = new InetSocketAddress(proxyHost,
@@ -66,11 +66,8 @@ public class Config {
 	}
 
 	public String getRemotePhp() {
-		int num = Integer.parseInt((this.getValue("ptp.remote.php.num")));
-		int index = (int) (Math.random() * (num)) + 1;
-		log.debug(index);
-		log.debug(this.getValue("ptp.remote.php." + index));
-		return this.getValue("ptp.remote.php." + index);
+		return this.getValue("ptp.remote.php",
+				"http://s1.phptunnelproxy.co.cc/ptpremote/remote.php");
 	}
 
 	public String getIp(String domain) {
@@ -83,6 +80,11 @@ public class Config {
 
 	public String getCompileDate() {
 		return appProp.getProperty("app.compile.time", "2012-12-21 00:00");
+	}
+
+	public String getUserAgent() {
+		return "PHPTunnelProxy Local/" + getVersion() + " (" + getCompileDate()
+				+ ")";
 	}
 
 	public Proxy getProxy() {
