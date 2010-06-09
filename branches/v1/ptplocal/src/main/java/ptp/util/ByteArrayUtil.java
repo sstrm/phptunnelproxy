@@ -1,5 +1,7 @@
 package ptp.util;
 
+import java.io.UnsupportedEncodingException;
+
 public class ByteArrayUtil {
 
 	public static String toString(byte[] array, int off, int length) {
@@ -76,5 +78,14 @@ public class ByteArrayUtil {
 		for(int i=0; i<len; i++) {
 			buff[off+i] = (byte)(buff[off+i] -key);
 		}
+	}
+	
+	public static byte[] getBytesFromString(String str) {
+		try {
+			return str.getBytes("US-ASCII");
+		} catch (UnsupportedEncodingException e) {
+			
+		}
+		return null;
 	}
 }

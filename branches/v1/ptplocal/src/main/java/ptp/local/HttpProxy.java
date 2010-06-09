@@ -42,10 +42,14 @@ public class HttpProxy {
 
 		String requestBase64String = new String(Base64Coder.encode(data, 0,
 				data.length));
+		String destHostBase64String = Base64Coder.encodeString(destHost);
 
 		String requestEncodedString = null;
+		String destHostEncodedString = null;
 		try {
 			requestEncodedString = URLEncoder.encode(requestBase64String,
+					"US-ASCII");
+			destHostEncodedString = URLEncoder.encode(destHostBase64String,
 					"US-ASCII");
 		} catch (UnsupportedEncodingException e2) {
 		}
@@ -53,8 +57,8 @@ public class HttpProxy {
 		byte key = (byte) ((Math.random() * (100)) + 1);
 
 		byte[] postData = ("request_data=" + requestEncodedString
-				+ "&dest_host=" + destHost + "&dest_port=" + destPort
-				+ "&is_ssl=" + isSSL + "&key=" + key).getBytes();
+				+ "&dest_host=" + destHostEncodedString + "&dest_port="
+				+ destPort + "&is_ssl=" + isSSL + "&key=" + key).getBytes();
 
 		log.debug("request: "
 				+ ByteArrayUtil.toString(postData, 0, postData.length));
