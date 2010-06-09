@@ -3,8 +3,10 @@ package ptp.local;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.net.URLEncoder;
 
 import org.apache.log4j.Logger;
 
@@ -41,9 +43,16 @@ public class HttpProxy {
 		String requestBase64String = new String(Base64Coder.encode(data, 0,
 				data.length));
 
+		String requestEncodedString = null;
+		try {
+			requestEncodedString = URLEncoder.encode(requestBase64String,
+					"US-ASCII");
+		} catch (UnsupportedEncodingException e2) {
+		}
+
 		byte key = (byte) ((Math.random() * (100)) + 1);
 
-		byte[] postData = ("request_data=" + requestBase64String
+		byte[] postData = ("request_data=" + requestEncodedString
 				+ "&dest_host=" + destHost + "&dest_port=" + destPort
 				+ "&is_ssl=" + isSSL + "&key=" + key).getBytes();
 

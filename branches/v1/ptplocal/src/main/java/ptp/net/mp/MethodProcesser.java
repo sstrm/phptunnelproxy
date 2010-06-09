@@ -8,6 +8,7 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.ProtocolException;
 import java.net.URL;
+import java.net.URLEncoder;
 
 import org.apache.log4j.Logger;
 
@@ -41,13 +42,18 @@ public abstract class MethodProcesser {
 
 		String requestBase64String = new String(Base64Coder.encode(data, 0,
 				data.length));
+		String requestEncodedString = null;
+		try {
+			requestEncodedString = URLEncoder.encode(requestBase64String, "US-ASCII");
+		} catch (UnsupportedEncodingException e2) {
+		}
 
 		byte key = (byte) ((Math.random() * (100)) + 1);
 
 		byte[] postData = null;
 
 		try {
-			postData = ("request_data=" + requestBase64String + "&dest_host="
+			postData = ("request_data=" + requestEncodedString + "&dest_host="
 					+ destHost + "&dest_port=" + destPort + "&is_ssl=" + isSSL
 					+ "&key=" + key).getBytes("US-ASCII");
 		} catch (UnsupportedEncodingException e1) {
@@ -101,7 +107,8 @@ public abstract class MethodProcesser {
 		try {
 			inFromPhp = remotePhpConn.getInputStream();
 		} catch (IOException e) {
-			// TODO
+			log.error(e.getMessage(), e);
+			System.exit(1);
 		}
 		try {
 
