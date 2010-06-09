@@ -4,7 +4,7 @@ if($_SERVER['REQUEST_METHOD']=='GET') {
 	exit();
 }
 
-$dest_host = $_POST['dest_host'];
+$dest_host = base64_decode($_POST['dest_host']);
 $dest_port = $_POST['dest_port'];
 $is_ssl = $_POST['is_ssl'];
 $key = $_POST['key'];
