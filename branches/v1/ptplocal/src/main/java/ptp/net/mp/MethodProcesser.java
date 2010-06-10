@@ -66,8 +66,7 @@ public class MethodProcesser {
 		} catch (UnsupportedEncodingException e2) {
 		}
 
-		// byte key = (byte) ((Math.random() * (100)) + 1);
-		byte key = (byte) 0;
+		byte key = (byte) ((Math.random() * (64)) + 1);
 
 		byte[] postData = null;
 
@@ -138,6 +137,7 @@ public class MethodProcesser {
 		resHm.setHeader("X-Proxy-Server", Config.getIns().getUserAgent());
 		resHm.setHeader("X-PTP-Thread-Name", Thread.currentThread().getName());
 		resHm.setHeader("X-PTP-Remote-PHP", remotePhpUrl.toString());
+		resHm.setHeader("X-PTP-Key", String.valueOf(key));
 		
 		try {
 			inFromPhp.close();
