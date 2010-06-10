@@ -13,49 +13,68 @@ import java.net.URLEncoder;
 import org.apache.log4j.Logger;
 
 import ptp.Config;
+import ptp.net.http.HttpMessage;
+import ptp.net.http.RequestHttpMessage;
+import ptp.net.http.ResponseHttpMessage;
 import ptp.util.Base64Coder;
 import ptp.util.ByteArrayUtil;
-import ptp.util.HttpUtil;
 
-public abstract class MethodProcesser {
+public class MethodProcesser {
 	private static Logger log = Logger.getLogger(MethodProcesser.class);
 
-	// private MethodProcesser(){}
+	public enum MethodType {
+		GET, POST, DELETE, PUT, HEAD;
 
-	public static MethodProcesser getIns(byte[] head, int headLen,
-			InputStream inFromBrowser, OutputStream outToBrowser) {
-		String headString = ByteArrayUtil.toString(head, 0, headLen);
-		String[] headers = headString.split("\\r\\n");
-		if (headers[0].startsWith("GET"))
-			return new GetMethodProcesser(headers, inFromBrowser, outToBrowser);
-		else if (headers[0].startsWith("POST"))
-			return new PostMethodProcesser(headers, inFromBrowser, outToBrowser);
-		else
-			return null;
+		// public MethodType valueOf(String methodName) {
+		// if (methodName.toUpperCase().equals("GET")) {
+		// return GET;
+		// } else if (methodName.toUpperCase().equals("POST")) {
+		// return POST;
+		// } else if (methodName.toUpperCase().equals("DELETE")) {
+		// return DELETE;
+		// } else if (methodName.toUpperCase().equals("PUT")) {
+		// return PUT;
+		// } else {
+		// return HEAD;
+		// }
+		// }
 
 	}
 
-	void requestRemote(byte[] data, String destHost, int destPort,
-			boolean isSSL, OutputStream outToBrowser) {
-		String remotePhp = Config.getIns().getRemotePhp();
-		log.info("remotePhp: " + remotePhp);
+	// private MethodProcesser(){}
+
+	private RequestHttpMessage reqHm;
+
+	public MethodProcesser(RequestHttpMessage reqHm) {
+		this.reqHm = reqHm;
+	}
+
+	HttpMessage requestRemote(RequestHttpMessage hm, boolean isSSL) {
+		byte[] data = hm.getBytes();
 
 		String requestBase64String = new String(Base64Coder.encode(data, 0,
 				data.length));
+		String destHostBase64String = Base64Coder.encodeString(hm.getHost());
+
 		String requestEncodedString = null;
+		String destHostEncodedString = null;
 		try {
-			requestEncodedString = URLEncoder.encode(requestBase64String, "US-ASCII");
+			requestEncodedString = URLEncoder.encode(requestBase64String,
+					"US-ASCII");
+			destHostEncodedString = URLEncoder.encode(destHostBase64String,
+					"US-ASCII");
 		} catch (UnsupportedEncodingException e2) {
 		}
 
-		byte key = (byte) ((Math.random() * (100)) + 1);
+		// byte key = (byte) ((Math.random() * (100)) + 1);
+		byte key = (byte) 0;
 
 		byte[] postData = null;
 
 		try {
 			postData = ("request_data=" + requestEncodedString + "&dest_host="
-					+ destHost + "&dest_port=" + destPort + "&is_ssl=" + isSSL
-					+ "&key=" + key).getBytes("US-ASCII");
+					+ destHostEncodedString + "&dest_port=" + hm.getPort() + "&is_ssl="
+					+ isSSL + "&key=" + key).getBytes("US-ASCII");
 		} catch (UnsupportedEncodingException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
@@ -64,6 +83,8 @@ public abstract class MethodProcesser {
 		log.debug("request: "
 				+ ByteArrayUtil.toString(postData, 0, postData.length));
 
+		String remotePhp = Config.getIns().getRemotePhp();
+		log.info("remotePhp: " + remotePhp);
 		URL remotePhpUrl = null;
 		try {
 			remotePhpUrl = new URL(remotePhp);
@@ -110,67 +131,30 @@ public abstract class MethodProcesser {
 			log.error(e.getMessage(), e);
 			System.exit(1);
 		}
-		try {
-
-			int responseHeadReadCount = -1;
-			byte[] responseHeadBuff = new byte[1024 * 50];
-
-			responseHeadReadCount = HttpUtil.readHttpHead(responseHeadBuff,
-					inFromPhp, key);
-			String responseHead = ByteArrayUtil.toString(responseHeadBuff, 0,
-					responseHeadReadCount);
-			String[] responseHeaders = responseHead.split("\\r\\n");
-			for (String responseHeader : responseHeaders) {
-				if (responseHeader.startsWith("Connection")) {
-
-				} else {
-					outToBrowser.write(responseHeader.getBytes("US-ASCII"));
-					outToBrowser.write("\r\n".getBytes("US-ASCII"));
-				}
-			}
-			outToBrowser.write("Proxy-Connection: keep-alive"
-					.getBytes("US-ASCII"));
-			outToBrowser.write("\r\n".getBytes("US-ASCII"));
-
-			outToBrowser.write(("Proxy-Server: " + Config.getIns()
-					.getUserAgent()).getBytes("US-ASCII"));
-			outToBrowser.write("\r\n".getBytes("US-ASCII"));
-
-			outToBrowser.write(("X-PTP-Thread-Name: " + Thread.currentThread()
-					.getName()).getBytes("US-ASCII"));
-			outToBrowser.write("\r\n".getBytes("US-ASCII"));
-
-			outToBrowser.write(("X-PTP-Remote-PHP: " + remotePhpUrl.toString())
-					.getBytes("US-ASCII"));
-			outToBrowser.write("\r\n".getBytes("US-ASCII"));
-
-			outToBrowser.write("\r\n".getBytes("US-ASCII"));
-			outToBrowser.flush();
-
-			int readCount = -1;
-			int phpByteSize = Integer.parseInt(Config.getIns().getValue(
-					"ptp.buff.size", "1024"));
-			byte[] phpByte = new byte[phpByteSize];
-
-			while ((readCount = inFromPhp.read(phpByte, 0, phpByteSize)) != -1) {
-				ByteArrayUtil.decrypt(phpByte, 0, readCount, key);
-				outToBrowser.write(phpByte, 0, readCount);
-				outToBrowser.flush();
-				log.debug(ByteArrayUtil.toString(phpByte, 0, readCount));
-			}
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-
+		ResponseHttpMessage resHm = new ResponseHttpMessage(key);
+		resHm.read(inFromPhp);
+		resHm.removeHeader("Connection");
+		resHm.setHeader("Proxy-Connection", "keep-alive");
+		resHm.setHeader("X-Proxy-Server", Config.getIns().getUserAgent());
+		resHm.setHeader("X-PTP-Thread-Name", Thread.currentThread().getName());
+		resHm.setHeader("X-PTP-Remote-PHP", remotePhpUrl.toString());
+		
 		try {
 			inFromPhp.close();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+
+		return resHm;
 	}
 
-	public abstract void process();
+	public HttpMessage process() {
+		reqHm.removeHeader("Proxy-Connection");
+		reqHm.removeHeader("Keep-Alive");
+		reqHm.setHeader("Connection", "close");
+
+		return this.requestRemote((RequestHttpMessage) reqHm, false);
+	}
 
 }

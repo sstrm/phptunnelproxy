@@ -10,8 +10,9 @@ import java.net.SocketTimeoutException;
 import org.apache.log4j.Logger;
 
 import ptp.Config;
+import ptp.net.http.HttpMessage;
+import ptp.net.http.RequestHttpMessage;
 import ptp.net.mp.MethodProcesser;
-import ptp.util.HttpUtil;
 
 public class LocalProxyServer {
 
@@ -92,8 +93,6 @@ class LocalProxyProcessThread implements Runnable {
 			log.error("failed to open stream on browser socket", e);
 		}
 
-		byte[] browserRequestHeadBuff = new byte[1024*50];
-
 		int retry = 0;
 		int processTimes = 0;
 		while (browserSocket.isConnected()) {
@@ -105,20 +104,22 @@ class LocalProxyProcessThread implements Runnable {
 				break;
 			}
 			if (availableBytes > 0) {
-				// try to read proxy request head
-				int proxyReqHeadLen = 0;
-				try {
-					proxyReqHeadLen = HttpUtil
-							.readHttpHead(browserRequestHeadBuff, inFromBrowser);
-				} catch (IOException e) {
-					log.error("failed to read browser http head", e);
-					HttpUtil.writeErrorResponse(outToBrowser,
-							"failed to read browser http head");
-				}
+				RequestHttpMessage reqHM = new RequestHttpMessage();
+				reqHM.read(inFromBrowser);
 
-				MethodProcesser mp = MethodProcesser.getIns(browserRequestHeadBuff,
-						proxyReqHeadLen, inFromBrowser, outToBrowser);
-				mp.process();
+				MethodProcesser mp = new MethodProcesser(reqHM);
+				HttpMessage resHM = mp.process();
+				try {
+					outToBrowser.write(resHM.getBytes());
+					outToBrowser.flush();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				
+				reqHM.destry();
+				resHM.destry();
+
 				processTimes++;
 			} else {
 				if (retry > 0) {
@@ -143,7 +144,8 @@ class LocalProxyProcessThread implements Runnable {
 		} catch (IOException e) {
 			log.error(e.getMessage());
 		}
-		log.info("local proxy thread end, it process " + processTimes + " requests from browser");
+		log.info("local proxy thread end, it process " + processTimes
+				+ " requests from browser");
 	}
 
 }

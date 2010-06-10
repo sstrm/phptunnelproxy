@@ -30,7 +30,7 @@ public class HttpUtil {
 			try {
 				buff[index++] = b;
 			} catch (ArrayIndexOutOfBoundsException e) {
-				log.error(ByteArrayUtil.toString(buff, 0, index - 1));
+				log.error(ByteArrayUtil.toString(buff, 0, index - 1), e);
 				System.exit(1);
 			}
 			if (b == '\r' || b == '\n') {
