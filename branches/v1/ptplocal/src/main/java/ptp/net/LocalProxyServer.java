@@ -117,8 +117,8 @@ class LocalProxyProcessThread implements Runnable {
 					e.printStackTrace();
 				}
 				
-				reqHM.destry();
-				resHM.destry();
+				reqHM.clear();
+				resHM.clear();
 
 				processTimes++;
 			} else {

@@ -1,12 +1,10 @@
 package ptp.net.http;
 
-import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.Date;
 
 import org.apache.log4j.Logger;
 
@@ -30,7 +28,7 @@ public class RequestHttpMessage extends HttpMessage {
 	@Override
 	protected void readHttpHeaders(InputStream in) {
 		super.readHttpHeaders(in, (byte) 0);
-		String[] tokens = firstLine.split("\\s");
+		String[] tokens = this.firstLine.split("\\s");
 		this.methodType = MethodProcesser.MethodType.valueOf(tokens[0]);
 		this.resource = URLUtil.getResource(tokens[1]);
 		URL requestURL = null;
@@ -47,6 +45,9 @@ public class RequestHttpMessage extends HttpMessage {
 		port = requestURL.getPort() != -1 ? requestURL.getPort() : 80;
 
 		this.version = tokens[2];
+
+		this.firstLine = this.methodType.toString() + " " + this.resource + " "
+				+ this.version;
 	}
 
 	public MethodProcesser.MethodType getMethodType() {
@@ -75,18 +76,8 @@ public class RequestHttpMessage extends HttpMessage {
 			int contentLength = Integer.parseInt(this.headers
 					.get("Content-Length"));
 
-			FileOutputStream bodyDataTmpFOS = null;
-			try {
-				this.bodyDataFile = File.createTempFile(Thread.currentThread()
-						.getName()
-						+ new Date().getTime(), ".ptp");
-				log.info("create body data file: "
-						+ this.bodyDataFile.getAbsolutePath());
-				bodyDataTmpFOS = new FileOutputStream(this.bodyDataFile);
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+			FileOutputStream bodyDataTmpFOS = this
+					.getBodyDataFileOutputStream();
 
 			byte[] buff = new byte[buff_size];
 
