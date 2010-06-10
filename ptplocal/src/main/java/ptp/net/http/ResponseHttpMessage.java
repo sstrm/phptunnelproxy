@@ -1,10 +1,8 @@
 package ptp.net.http;
 
-import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Date;
 
 import org.apache.log4j.Logger;
 
@@ -40,18 +38,7 @@ public class ResponseHttpMessage extends HttpMessage {
 
 	@Override
 	protected void readHttpBody(InputStream in) {
-		FileOutputStream bodyDataTmpFOS = null;
-		try {
-			this.bodyDataFile = File.createTempFile(Thread.currentThread()
-					.getName()
-					+ new Date().getTime(), ".ptp");
-			log.info("create body data file: "
-					+ this.bodyDataFile.getAbsolutePath());
-			bodyDataTmpFOS = new FileOutputStream(this.bodyDataFile);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		FileOutputStream bodyDataTmpFOS = this.getBodyDataFileOutputStream();
 
 		byte[] buff = new byte[buff_size];
 

@@ -2,8 +2,10 @@ package ptp.net.http;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -47,7 +49,7 @@ public abstract class HttpMessage {
 		}
 		String headString = ByteArrayUtil.toString(buff, 0, headerLength);
 		String[] headArray = headString.split("\\r\\n");
-		firstLine = headArray[0];
+		this.firstLine = headArray[0];
 
 		for (int i = 1; i < headArray.length; i++) {
 			String[] tokens = headArray[i].split(":\\s");
@@ -64,6 +66,31 @@ public abstract class HttpMessage {
 	}
 
 	protected abstract void readHttpBody(InputStream in);
+	
+	protected FileOutputStream getBodyDataFileOutputStream() {
+		FileOutputStream bodyDataTmpFOS = null;
+		try {
+			if(this.bodyDataFile == null) {
+				File tmpDirFile = new File("tmp");
+				if(!(tmpDirFile.exists()&&tmpDirFile.isDirectory())) {
+					if(tmpDirFile.exists()) {
+						tmpDirFile.delete();
+					}
+					tmpDirFile.mkdir();
+				}
+				this.bodyDataFile = File.createTempFile(Thread.currentThread()
+						.getName()
+						+ new Date().getTime(), ".ptp", tmpDirFile);
+				log.debug("create body data file: "
+						+ this.bodyDataFile.getAbsolutePath());
+				bodyDataTmpFOS = new FileOutputStream(this.bodyDataFile);
+			}
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return bodyDataTmpFOS;
+	}
 
 	public String getHeader(String headerName) {
 		return this.headers.get(headerName);
@@ -113,9 +140,9 @@ public abstract class HttpMessage {
 
 	}
 
-	public void destry() {
+	public void clear() {
 		if (this.bodyDataFile != null) {
-			log.info("delete: "+this.bodyDataFile.getPath());
+			log.debug("delete: "+this.bodyDataFile.getPath());
 			this.bodyDataFile.delete();
 		}
 	}
