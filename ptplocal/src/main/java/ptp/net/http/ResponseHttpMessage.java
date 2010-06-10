@@ -7,6 +7,7 @@ import java.io.InputStream;
 import org.apache.log4j.Logger;
 
 import ptp.Config;
+import ptp.util.ByteArrayUtil;
 
 public class ResponseHttpMessage extends HttpMessage {
 	private static Logger log = Logger.getLogger(ResponseHttpMessage.class);
@@ -46,6 +47,7 @@ public class ResponseHttpMessage extends HttpMessage {
 
 		try {
 			while ((readCount = in.read(buff, 0, buff_size)) != -1) {
+				ByteArrayUtil.decrypt(buff, 0, readCount, key);
 				bodyDataTmpFOS.write(buff, 0, readCount);
 			}
 			bodyDataTmpFOS.close();
