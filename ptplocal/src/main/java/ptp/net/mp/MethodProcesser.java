@@ -12,6 +12,7 @@ import java.net.URLEncoder;
 import org.apache.log4j.Logger;
 
 import ptp.Config;
+import ptp.net.ProxyException;
 import ptp.net.http.HttpMessage;
 import ptp.net.http.RequestHttpMessage;
 import ptp.net.http.ResponseHttpMessage;
@@ -33,7 +34,7 @@ public class MethodProcesser {
 		this.reqHm = reqHm;
 	}
 
-	HttpMessage requestRemote(RequestHttpMessage hm, boolean isSSL) {
+	HttpMessage requestRemote(RequestHttpMessage hm, boolean isSSL) throws ProxyException {
 		byte[] data = hm.getBytes();
 
 		String requestBase64String = new String(Base64Coder.encode(data, 0,
@@ -68,8 +69,7 @@ public class MethodProcesser {
 			remotePhpConn = (HttpURLConnection) remotePhpURL
 					.openConnection(Config.getIns().getProxy());
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			throw new ProxyException(e);
 		}
 		try {
 			remotePhpConn.setRequestMethod("POST");
@@ -92,7 +92,7 @@ public class MethodProcesser {
 			outToPhp.flush();
 			outToPhp.close();
 		} catch (IOException e) {
-			// TODO
+			throw new ProxyException(e);
 		}
 
 		InputStream inFromPhp = null;
@@ -114,14 +114,13 @@ public class MethodProcesser {
 		try {
 			inFromPhp.close();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			throw new ProxyException(e);
 		}
 
 		return resHm;
 	}
 
-	public HttpMessage process() {
+	public HttpMessage process() throws ProxyException {
 		reqHm.removeHeader("Proxy-Connection");
 		reqHm.removeHeader("Keep-Alive");
 		reqHm.setHeader("Connection", "close");

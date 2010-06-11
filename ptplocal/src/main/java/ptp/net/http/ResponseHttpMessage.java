@@ -4,13 +4,12 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
-import org.apache.log4j.Logger;
-
 import ptp.Config;
+import ptp.net.ProxyException;
 import ptp.util.ByteArrayUtil;
 
 public class ResponseHttpMessage extends HttpMessage {
-	private static Logger log = Logger.getLogger(ResponseHttpMessage.class);
+	// private static Logger log = Logger.getLogger(ResponseHttpMessage.class);
 	private static int buff_size = Integer.parseInt(Config.getIns().getValue(
 			"ptp.buff.size", "102400"));
 
@@ -29,7 +28,7 @@ public class ResponseHttpMessage extends HttpMessage {
 	}
 
 	@Override
-	protected void readHttpHeaders(InputStream in) {
+	protected void readHttpHeaders(InputStream in) throws ProxyException {
 		super.readHttpHeaders(in, key);
 		String[] tokens = firstLine.split("\\s");
 
@@ -38,7 +37,7 @@ public class ResponseHttpMessage extends HttpMessage {
 	}
 
 	@Override
-	protected void readHttpBody(InputStream in) {
+	protected void readHttpBody(InputStream in) throws ProxyException {
 		FileOutputStream bodyDataTmpFOS = this.getBodyDataFileOutputStream();
 
 		byte[] buff = new byte[buff_size];
@@ -52,7 +51,7 @@ public class ResponseHttpMessage extends HttpMessage {
 			}
 			bodyDataTmpFOS.close();
 		} catch (IOException e) {
-			log.error(e.getMessage(), e);
+			throw new ProxyException(e);
 		}
 
 	}
