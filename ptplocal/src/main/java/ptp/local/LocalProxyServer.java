@@ -196,7 +196,7 @@ class PipeThread implements Runnable {
 	public void run() {
 		int rc = 0;
 		int buffSize = Integer.parseInt(Config.getIns().getValue(
-				"ptp.buff.size", "1024"));
+				"ptp.local.buff.size", "10240"));
 		byte[] buff = new byte[buffSize];
 		try {
 			while (true) {

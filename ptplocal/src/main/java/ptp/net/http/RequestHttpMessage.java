@@ -16,7 +16,7 @@ import ptp.util.URLUtil;
 public class RequestHttpMessage extends HttpMessage {
 	private static Logger log = Logger.getLogger(RequestHttpMessage.class);
 	private static int buff_size = Integer.parseInt(Config.getIns().getValue(
-			"ptp.buff.size", "102400"));
+			"ptp.local.buff.size", "102400"));
 
 	protected MethodProcesser.MethodType methodType;
 
@@ -30,7 +30,11 @@ public class RequestHttpMessage extends HttpMessage {
 	protected void readHttpHeaders(InputStream in) throws ProxyException {
 		super.readHttpHeaders(in, (byte) 0);
 		String[] tokens = this.firstLine.split("\\s");
-		this.methodType = MethodProcesser.MethodType.valueOf(tokens[0]);
+		try {
+			this.methodType = MethodProcesser.MethodType.valueOf(tokens[0]);
+		} catch(IllegalArgumentException e) {
+			throw new ProxyException(e);
+		}
 		this.resource = URLUtil.getResource(tokens[1]);
 		URL requestURL = null;
 		try {

@@ -19,7 +19,7 @@ import ptp.util.ByteArrayUtil;
 public abstract class HttpMessage {
 	private static Logger log = Logger.getLogger(HttpMessage.class);
 	private static int buff_size = Integer.parseInt(Config.getIns().getValue(
-			"ptp.buff.size", "102400"));
+			"ptp.local.buff.size", "102400"));
 
 	protected String firstLine;
 
@@ -38,7 +38,8 @@ public abstract class HttpMessage {
 		this.readHttpBody(in);
 	}
 
-	protected abstract void readHttpHeaders(InputStream in) throws ProxyException;
+	protected abstract void readHttpHeaders(InputStream in)
+			throws ProxyException;
 
 	protected void readHttpHeaders(InputStream in, byte key)
 			throws ProxyException {
@@ -68,7 +69,8 @@ public abstract class HttpMessage {
 
 	protected abstract void readHttpBody(InputStream in) throws ProxyException;
 
-	protected FileOutputStream getBodyDataFileOutputStream() throws ProxyException {
+	protected FileOutputStream getBodyDataFileOutputStream()
+			throws ProxyException {
 		FileOutputStream bodyDataTmpFOS = null;
 		try {
 			if (this.bodyDataFile == null) {
@@ -140,10 +142,15 @@ public abstract class HttpMessage {
 	}
 
 	public void clear() {
-		if (this.bodyDataFile != null) {
+		boolean wantDel = Boolean.valueOf(Config.getIns().getValue(
+				"ptp.local.deltmp", "true"));
+
+		if (wantDel && this.bodyDataFile != null) {
 			log.debug("delete: " + this.bodyDataFile.getPath());
 			this.bodyDataFile.delete();
 		}
+
+		this.bodyDataFile = null;
 	}
 
 }
