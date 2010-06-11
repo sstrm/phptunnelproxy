@@ -37,8 +37,8 @@ public class HttpProxy {
 
 	private void requestRemote(byte[] data, String destHost, int destPort,
 			DataOutputStream outToBrowser) throws IOException {
-		String remotePhp = Config.getIns().getRemotePhp();
-		log.info("remotePhp: " + remotePhp);
+		URL remotePhpURL = Config.getIns().getRemotePhpURL();
+		log.info("remotePhp: " + remotePhpURL.toString());
 
 		String requestBase64String = new String(Base64Coder.encode(data, 0,
 				data.length));
@@ -63,8 +63,7 @@ public class HttpProxy {
 		log.debug("request: "
 				+ ByteArrayUtil.toString(postData, 0, postData.length));
 
-		URL remotePhpUrl = new URL(remotePhp);
-		HttpURLConnection remotePhpConn = (HttpURLConnection) remotePhpUrl
+		HttpURLConnection remotePhpConn = (HttpURLConnection) remotePhpURL
 				.openConnection(Config.getIns().getProxy());
 		remotePhpConn.setRequestMethod("POST");
 		remotePhpConn.setRequestProperty("User-Agent", Config.getIns()

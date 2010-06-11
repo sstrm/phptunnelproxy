@@ -5,7 +5,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.ProtocolException;
 import java.net.URL;
 import java.net.URLEncoder;
@@ -24,21 +23,6 @@ public class MethodProcesser {
 
 	public enum MethodType {
 		GET, POST, DELETE, PUT, HEAD;
-
-		// public MethodType valueOf(String methodName) {
-		// if (methodName.toUpperCase().equals("GET")) {
-		// return GET;
-		// } else if (methodName.toUpperCase().equals("POST")) {
-		// return POST;
-		// } else if (methodName.toUpperCase().equals("DELETE")) {
-		// return DELETE;
-		// } else if (methodName.toUpperCase().equals("PUT")) {
-		// return PUT;
-		// } else {
-		// return HEAD;
-		// }
-		// }
-
 	}
 
 	// private MethodProcesser(){}
@@ -68,32 +52,20 @@ public class MethodProcesser {
 
 		byte key = (byte) ((Math.random() * (64)) + 1);
 
-		byte[] postData = null;
-
-		try {
-			postData = ("request_data=" + requestEncodedString + "&dest_host="
-					+ destHostEncodedString + "&dest_port=" + hm.getPort() + "&is_ssl="
-					+ isSSL + "&key=" + key).getBytes("US-ASCII");
-		} catch (UnsupportedEncodingException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
+		byte[] postData = ByteArrayUtil.getBytesFromString("request_data="
+				+ requestEncodedString + "&dest_host=" + destHostEncodedString
+				+ "&dest_port=" + hm.getPort() + "&is_ssl=" + isSSL + "&key="
+				+ key);
 
 		log.debug("request: "
 				+ ByteArrayUtil.toString(postData, 0, postData.length));
 
-		String remotePhp = Config.getIns().getRemotePhp();
-		log.info("remotePhp: " + remotePhp);
-		URL remotePhpUrl = null;
-		try {
-			remotePhpUrl = new URL(remotePhp);
-		} catch (MalformedURLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		URL remotePhpURL = Config.getIns().getRemotePhpURL();
+		log.info("remotePhp: " + remotePhpURL.toString());
+		
 		HttpURLConnection remotePhpConn = null;
 		try {
-			remotePhpConn = (HttpURLConnection) remotePhpUrl
+			remotePhpConn = (HttpURLConnection) remotePhpURL
 					.openConnection(Config.getIns().getProxy());
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
@@ -134,11 +106,11 @@ public class MethodProcesser {
 		resHm.read(inFromPhp);
 		resHm.removeHeader("Connection");
 		resHm.setHeader("Proxy-Connection", "keep-alive");
-		resHm.setHeader("X-Proxy-Server", Config.getIns().getUserAgent());
+		resHm.setHeader("X-PTP-User-Agent", Config.getIns().getUserAgent());
 		resHm.setHeader("X-PTP-Thread-Name", Thread.currentThread().getName());
-		resHm.setHeader("X-PTP-Remote-PHP", remotePhpUrl.toString());
+		resHm.setHeader("X-PTP-Remote-PHP", remotePhpURL.toString());
 		resHm.setHeader("X-PTP-Key", String.valueOf(key));
-		
+
 		try {
 			inFromPhp.close();
 		} catch (IOException e) {

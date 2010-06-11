@@ -34,7 +34,7 @@ public class RequestHttpMessage extends HttpMessage {
 		URL requestURL = null;
 		try {
 			requestURL = new URL(tokens[1]);
-			log.info("request url: " + requestURL.toString());
+			log.info(this.methodType + ": " + requestURL.toString());
 		} catch (MalformedURLException e) {
 			// TODO Auto-generated catch block
 		}
