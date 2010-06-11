@@ -12,8 +12,9 @@ import java.util.Map;
 import org.apache.log4j.Logger;
 
 import ptp.Config;
+import ptp.net.ProxyException;
+import ptp.net.util.HttpUtil;
 import ptp.util.ByteArrayUtil;
-import ptp.util.HttpUtil;
 
 public abstract class HttpMessage {
 	private static Logger log = Logger.getLogger(HttpMessage.class);
@@ -32,21 +33,19 @@ public abstract class HttpMessage {
 		headers = new HashMap<String, String>();
 	}
 
-	public void read(InputStream in) {
+	public void read(InputStream in) throws ProxyException {
 		this.readHttpHeaders(in);
 		this.readHttpBody(in);
 	}
 
-	protected abstract void readHttpHeaders(InputStream in);
+	protected abstract void readHttpHeaders(InputStream in) throws ProxyException;
 
-	protected void readHttpHeaders(InputStream in, byte key) {
+	protected void readHttpHeaders(InputStream in, byte key)
+			throws ProxyException {
 		byte[] buff = new byte[buff_size];
 		int headerLength = 0;
-		try {
-			headerLength = HttpUtil.readHttpHead(buff, in, key);
-		} catch (IOException e) {
-			log.error(e.getMessage(), e);
-		}
+		headerLength = HttpUtil.readHttpHead(buff, in, key);
+
 		String headString = ByteArrayUtil.toString(buff, 0, headerLength);
 		String[] headArray = headString.split("\\r\\n");
 		this.firstLine = headArray[0];
@@ -59,21 +58,23 @@ public abstract class HttpMessage {
 			} else if (tokens.length == 1) {
 				this.headers.put(tokens[0], "");
 			} else {
-				// TODO what a fucking header?!
+				// what a fucking header?!
+				throw new ProxyException("Get a wrong http header: "
+						+ headArray[i]);
 			}
 
 		}
 	}
 
-	protected abstract void readHttpBody(InputStream in);
-	
-	protected FileOutputStream getBodyDataFileOutputStream() {
+	protected abstract void readHttpBody(InputStream in) throws ProxyException;
+
+	protected FileOutputStream getBodyDataFileOutputStream() throws ProxyException {
 		FileOutputStream bodyDataTmpFOS = null;
 		try {
-			if(this.bodyDataFile == null) {
+			if (this.bodyDataFile == null) {
 				File tmpDirFile = new File("tmp");
-				if(!(tmpDirFile.exists()&&tmpDirFile.isDirectory())) {
-					if(tmpDirFile.exists()) {
+				if (!(tmpDirFile.exists() && tmpDirFile.isDirectory())) {
+					if (tmpDirFile.exists()) {
 						tmpDirFile.delete();
 					}
 					tmpDirFile.mkdir();
@@ -86,8 +87,7 @@ public abstract class HttpMessage {
 				bodyDataTmpFOS = new FileOutputStream(this.bodyDataFile);
 			}
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			throw new ProxyException(e);
 		}
 		return bodyDataTmpFOS;
 	}
@@ -108,7 +108,7 @@ public abstract class HttpMessage {
 		return this.bodyDataFile;
 	}
 
-	public byte[] getBytes() {
+	public byte[] getBytes() throws ProxyException {
 		final String CRLF = "\r\n";
 		StringBuilder sb = new StringBuilder();
 		sb.append(this.firstLine).append(CRLF);
@@ -130,8 +130,7 @@ public abstract class HttpMessage {
 				fis.read(bytes, headerSize, bodySize);
 				fis.close();
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				throw new ProxyException(e);
 			}
 			return bytes;
 		} else {
@@ -142,7 +141,7 @@ public abstract class HttpMessage {
 
 	public void clear() {
 		if (this.bodyDataFile != null) {
-			log.debug("delete: "+this.bodyDataFile.getPath());
+			log.debug("delete: " + this.bodyDataFile.getPath());
 			this.bodyDataFile.delete();
 		}
 	}

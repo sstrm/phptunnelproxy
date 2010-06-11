@@ -13,6 +13,7 @@ import ptp.Config;
 import ptp.net.http.HttpMessage;
 import ptp.net.http.RequestHttpMessage;
 import ptp.net.mp.MethodProcesser;
+import ptp.net.util.HttpUtil;
 
 public class LocalProxyServer {
 
@@ -81,6 +82,11 @@ class LocalProxyProcessThread implements Runnable {
 	@Override
 	public void run() {
 		process();
+		try {
+			browserSocket.close();
+		} catch (IOException e) {
+			log.error(e.getMessage(), e);
+		}
 	}
 
 	private void process() {
@@ -91,6 +97,7 @@ class LocalProxyProcessThread implements Runnable {
 			outToBrowser = browserSocket.getOutputStream();
 		} catch (IOException e) {
 			log.error("failed to open stream on browser socket", e);
+			return;
 		}
 
 		int retry = 0;
@@ -105,21 +112,21 @@ class LocalProxyProcessThread implements Runnable {
 			}
 			if (availableBytes > 0) {
 				RequestHttpMessage reqHM = new RequestHttpMessage();
-				reqHM.read(inFromBrowser);
-
-				MethodProcesser mp = new MethodProcesser(reqHM);
-				HttpMessage resHM = mp.process();
 				try {
+					reqHM.read(inFromBrowser);
+					MethodProcesser mp = new MethodProcesser(reqHM);
+					HttpMessage resHM = mp.process();
 					outToBrowser.write(resHM.getBytes());
 					outToBrowser.flush();
+					reqHM.clear();
+					resHM.clear();
+				} catch (ProxyException e) {
+					log.error(e.getMessage(), e);
+					HttpUtil.writeErrorResponse(outToBrowser, e);
 				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+					log.error(e.getMessage(), e);
+					break;
 				}
-				
-				reqHM.clear();
-				resHM.clear();
-
 				processTimes++;
 			} else {
 				if (retry > 0) {
@@ -130,22 +137,20 @@ class LocalProxyProcessThread implements Runnable {
 					Thread.sleep(150);
 					retry++;
 				} catch (InterruptedException e) {
-					log.error(e.getMessage());
+					log.info(e.getMessage());
 					break;
 				}
 			}
-
 		}
 
 		try {
 			inFromBrowser.close();
 			outToBrowser.close();
-			browserSocket.close();
 		} catch (IOException e) {
-			log.error(e.getMessage());
+			log.error(e.getMessage(), e);
 		}
-		log.info("local proxy thread end, it process " + processTimes
-				+ " requests from browser");
+		log.info(Thread.currentThread().getName() + " end, it proceed "
+				+ processTimes + " requests from browser");
 	}
 
 }

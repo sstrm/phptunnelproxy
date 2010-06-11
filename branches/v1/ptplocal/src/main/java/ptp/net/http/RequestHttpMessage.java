@@ -9,6 +9,7 @@ import java.net.URL;
 import org.apache.log4j.Logger;
 
 import ptp.Config;
+import ptp.net.ProxyException;
 import ptp.net.mp.MethodProcesser;
 import ptp.util.URLUtil;
 
@@ -26,7 +27,7 @@ public class RequestHttpMessage extends HttpMessage {
 	protected int port;
 
 	@Override
-	protected void readHttpHeaders(InputStream in) {
+	protected void readHttpHeaders(InputStream in) throws ProxyException {
 		super.readHttpHeaders(in, (byte) 0);
 		String[] tokens = this.firstLine.split("\\s");
 		this.methodType = MethodProcesser.MethodType.valueOf(tokens[0]);
@@ -71,7 +72,7 @@ public class RequestHttpMessage extends HttpMessage {
 	}
 
 	@Override
-	protected void readHttpBody(InputStream in) {
+	protected void readHttpBody(InputStream in) throws ProxyException {
 		if (this.headers.containsKey("Content-Length")) {
 			int contentLength = Integer.parseInt(this.headers
 					.get("Content-Length"));
@@ -92,7 +93,7 @@ public class RequestHttpMessage extends HttpMessage {
 				}
 				bodyDataTmpFOS.close();
 			} catch (IOException e) {
-				log.error(e.getMessage(), e);
+				throw new ProxyException(e);
 			}
 		}
 	}
