@@ -3,8 +3,10 @@ package ptp;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.net.MalformedURLException;
 import java.net.Proxy;
 import java.net.SocketAddress;
+import java.net.URL;
 import java.util.Properties;
 
 import org.apache.log4j.Logger;
@@ -65,9 +67,15 @@ public class Config {
 		return prop.getProperty(key, defaultValue);
 	}
 
-	public String getRemotePhp() {
-		return this.getValue("ptp.remote.php",
-				"http://s1.phptunnelproxy.co.cc/ptpremote/remote.php");
+	public URL getRemotePhpURL() {
+		try {
+			return new URL(this.getValue("ptp.remote.php",
+					"http://s1.phptunnelproxy.co.cc/ptpremote/remote.php"));
+		} catch (MalformedURLException e) {
+			log.fatal("ptp.remote.php config syntax error!", e);
+			Thread.currentThread().interrupt();
+		}
+		return null;
 	}
 
 	public String getIp(String domain) {
