@@ -86,7 +86,7 @@ public class HttpProxy {
 				.getInputStream());
 		int readCount = -1;
 		int phpByteSize = Integer.parseInt(Config.getIns().getValue(
-				"ptp.buff.size", "1024"));
+				"ptp.local.buff.size", "10240"));
 		byte[] phpByte = new byte[phpByteSize];
 		while ((readCount = inFromPhp.read(phpByte, 0, phpByteSize)) != -1) {
 			ByteArrayUtil.decrypt(phpByte, 0, readCount, key);

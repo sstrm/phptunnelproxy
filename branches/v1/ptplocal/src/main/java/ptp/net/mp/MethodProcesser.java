@@ -34,7 +34,8 @@ public class MethodProcesser {
 		this.reqHm = reqHm;
 	}
 
-	HttpMessage requestRemote(RequestHttpMessage hm, boolean isSSL) throws ProxyException {
+	HttpMessage requestRemote(RequestHttpMessage hm, boolean isSSL)
+			throws ProxyException {
 		byte[] data = hm.getBytes();
 
 		String requestBase64String = new String(Base64Coder.encode(data, 0,
@@ -63,7 +64,7 @@ public class MethodProcesser {
 
 		URL remotePhpURL = Config.getIns().getRemotePhpURL();
 		log.info("remotePhp: " + remotePhpURL.toString());
-		
+
 		HttpURLConnection remotePhpConn = null;
 		try {
 			remotePhpConn = (HttpURLConnection) remotePhpURL
@@ -110,6 +111,8 @@ public class MethodProcesser {
 		resHm.setHeader("X-PTP-Thread-Name", Thread.currentThread().getName());
 		resHm.setHeader("X-PTP-Remote-PHP", remotePhpURL.toString());
 		resHm.setHeader("X-PTP-Key", String.valueOf(key));
+		resHm.setHeader("X-PTP-TMP", resHm.getBodyDataFile() == null ? ""
+				: resHm.getBodyDataFile().getName());
 
 		try {
 			inFromPhp.close();

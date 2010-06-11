@@ -49,9 +49,12 @@ public class HttpUtil {
 
 	public static void writeErrorResponse(OutputStream outToBrowser,
 			ProxyException proxyException) {
+		log.info("wirite error page for: " + proxyException.getMessage());
 		PrintWriter w = new PrintWriter(new OutputStreamWriter(outToBrowser));
-		w.write("HTTP/1.0 500 Internal Server Error");
-		w.write("\r\n\r\n");
+		w.write("HTTP/1.1 500 Internal Server Error\r\n");
+		w.write("Content-Type: text/html; charset=utf-8\r\n");
+		w.write("Connection: close\r\n");
+		w.write("\r\n");
 
 		w.write("<html>");
 		w.write("<head><title>HTTP 500 Internal Server Error</title><head>");

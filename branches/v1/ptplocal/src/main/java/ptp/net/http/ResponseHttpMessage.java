@@ -11,7 +11,7 @@ import ptp.util.ByteArrayUtil;
 public class ResponseHttpMessage extends HttpMessage {
 	// private static Logger log = Logger.getLogger(ResponseHttpMessage.class);
 	private static int buff_size = Integer.parseInt(Config.getIns().getValue(
-			"ptp.buff.size", "102400"));
+			"ptp.local.buff.size", "102400"));
 
 	private byte key;
 
