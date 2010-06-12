@@ -1,7 +1,6 @@
 package ptp.net.http;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -110,7 +109,7 @@ public abstract class HttpMessage {
 		return this.bodyDataFile;
 	}
 
-	public byte[] getBytes() throws ProxyException {
+	public byte[] getHeadBytes() throws ProxyException {
 		final String CRLF = "\r\n";
 		StringBuilder sb = new StringBuilder();
 		sb.append(this.firstLine).append(CRLF);
@@ -120,24 +119,8 @@ public abstract class HttpMessage {
 		}
 		sb.append(CRLF);
 
-		byte[] headerByte = ByteArrayUtil.getBytesFromString(sb.toString());
-		int headerSize = headerByte.length;
-		if (this.bodyDataFile != null) {
-			int bodySize = (int) this.bodyDataFile.length();
-			byte[] bytes = new byte[headerSize + bodySize];
-			ByteArrayUtil.copy(headerByte, 0, bytes, 0, headerSize);
-			FileInputStream fis = null;
-			try {
-				fis = new FileInputStream(this.bodyDataFile);
-				fis.read(bytes, headerSize, bodySize);
-				fis.close();
-			} catch (IOException e) {
-				throw new ProxyException(e);
-			}
-			return bytes;
-		} else {
-			return headerByte;
-		}
+		return ByteArrayUtil.getBytesFromString(sb.toString());
+
 
 	}
 

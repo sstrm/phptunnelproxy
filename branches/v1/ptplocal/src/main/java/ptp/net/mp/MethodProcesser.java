@@ -13,7 +13,6 @@ import org.apache.log4j.Logger;
 
 import ptp.Config;
 import ptp.net.ProxyException;
-import ptp.net.http.HttpMessage;
 import ptp.net.http.RequestHttpMessage;
 import ptp.net.http.ResponseHttpMessage;
 import ptp.util.Base64Coder;
@@ -34,9 +33,9 @@ public class MethodProcesser {
 		this.reqHm = reqHm;
 	}
 
-	HttpMessage requestRemote(RequestHttpMessage hm, boolean isSSL)
+	ResponseHttpMessage requestRemote(RequestHttpMessage hm, boolean isSSL)
 			throws ProxyException {
-		byte[] data = hm.getBytes();
+		byte[] data = hm.getHeadBytes();
 
 		String requestBase64String = new String(Base64Coder.encode(data, 0,
 				data.length));
@@ -91,7 +90,7 @@ public class MethodProcesser {
 			outToPhp.write(postData);
 
 			outToPhp.flush();
-			outToPhp.close();
+			//outToPhp.close();
 		} catch (IOException e) {
 			throw new ProxyException(e);
 		}
@@ -114,16 +113,18 @@ public class MethodProcesser {
 		resHm.setHeader("X-PTP-TMP", resHm.getBodyDataFile() == null ? ""
 				: resHm.getBodyDataFile().getName());
 
+		/*
 		try {
 			inFromPhp.close();
 		} catch (IOException e) {
 			throw new ProxyException(e);
 		}
+		*/
 
 		return resHm;
 	}
 
-	public HttpMessage process() throws ProxyException {
+	public ResponseHttpMessage process() throws ProxyException {
 		reqHm.removeHeader("Proxy-Connection");
 		reqHm.removeHeader("Keep-Alive");
 		reqHm.setHeader("Connection", "close");
