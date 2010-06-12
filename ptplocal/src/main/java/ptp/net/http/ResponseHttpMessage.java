@@ -3,19 +3,21 @@ package ptp.net.http;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
+
+import org.apache.log4j.Logger;
 
 import ptp.Config;
 import ptp.net.ProxyException;
 import ptp.util.ByteArrayUtil;
 
 public class ResponseHttpMessage extends HttpMessage {
-	// private static Logger log = Logger.getLogger(ResponseHttpMessage.class);
-	private static int buff_size = Integer.parseInt(Config.getIns().getValue(
-			"ptp.local.buff.size", "102400"));
 
-	private byte key;
+	protected byte key;
 
 	protected int httpCode;
+
+	protected boolean bodyReadEnd = false;
 
 	private ResponseHttpMessage() {
 		super();
@@ -38,7 +40,34 @@ public class ResponseHttpMessage extends HttpMessage {
 
 	@Override
 	protected void readHttpBody(InputStream in) throws ProxyException {
-		FileOutputStream bodyDataTmpFOS = this.getBodyDataFileOutputStream();
+		FileOutputStream out  = this.getBodyDataFileOutputStream();
+		
+		HttpBodyReadThread hbrt = new HttpBodyReadThread(this, out, in);
+		hbrt.start();
+	}
+
+	public boolean isBodyReadEnd() {
+		return this.bodyReadEnd;
+	}
+
+}
+
+class HttpBodyReadThread extends Thread {
+	private static Logger log = Logger.getLogger(HttpBodyReadThread.class);
+	private static int buff_size = Integer.parseInt(Config.getIns().getValue(
+			"ptp.local.buff.size", "102400"));
+
+	private ResponseHttpMessage rhm;
+	private OutputStream out;
+	private InputStream in;
+
+	public HttpBodyReadThread(ResponseHttpMessage rhm, OutputStream out, InputStream in) {
+		this.rhm = rhm;
+		this.out = out;
+		this.in = in;
+	}
+
+	public void run() {
 
 		byte[] buff = new byte[buff_size];
 
@@ -46,14 +75,13 @@ public class ResponseHttpMessage extends HttpMessage {
 
 		try {
 			while ((readCount = in.read(buff, 0, buff_size)) != -1) {
-				ByteArrayUtil.decrypt(buff, 0, readCount, key);
-				bodyDataTmpFOS.write(buff, 0, readCount);
+				ByteArrayUtil.decrypt(buff, 0, readCount, rhm.key);
+				out.write(buff, 0, readCount);
 			}
-			bodyDataTmpFOS.close();
+			out.close();
+			rhm.bodyReadEnd = true;
 		} catch (IOException e) {
-			throw new ProxyException(e);
+			log.error(e.getMessage(), e);
 		}
-
 	}
-
 }
