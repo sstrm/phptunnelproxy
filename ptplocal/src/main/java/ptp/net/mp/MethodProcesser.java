@@ -5,49 +5,88 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.ProtocolException;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.apache.log4j.Logger;
 
 import ptp.Config;
 import ptp.net.ProxyException;
-import ptp.net.http.RequestHttpMessage;
-import ptp.net.http.ResponseHttpMessage;
+import ptp.net.util.HttpUtil;
 import ptp.util.Base64Coder;
 import ptp.util.ByteArrayUtil;
+import ptp.util.URLUtil;
 
-public class MethodProcesser {
+public abstract class MethodProcesser {
 	private static Logger log = Logger.getLogger(MethodProcesser.class);
+	protected static int buff_size = Integer.parseInt(Config.getIns().getValue(
+			"ptp.local.buff.size", "102400"));
 
-	public enum MethodType {
-		GET, POST, DELETE, PUT, HEAD;
+	protected String reqLine;
+	protected Map<String, String> reqHeaders = new HashMap<String, String>();
+
+	protected String destHost;
+	protected int destPort;
+
+	public static MethodProcesser getIns(InputStream inFromBrowser,
+			OutputStream outToBrowser) throws ProxyException {
+		MethodProcesser mp = null;
+
+		byte[] buff = new byte[buff_size];
+		int headLength = 0;
+		headLength = HttpUtil.readHttpHead(buff, inFromBrowser, (byte) 0);
+
+		String headString = ByteArrayUtil.toString(buff, 0, headLength);
+		String[] headArray = headString.split("\\r\\n");
+
+		if (headArray[0].startsWith("GET"))
+			mp = new GetMethodProcesser(inFromBrowser, outToBrowser);
+		else if (headArray[0].startsWith("POST"))
+			mp = new PostMethodProcesser(inFromBrowser, outToBrowser);
+		else {
+			throw new ProxyException("Not supportted http Method: " + headArray[0]);
+		}
+
+		mp.reqLine = headArray[0];
+
+		for (int i = 1; i < headArray.length; i++) {
+			String[] tokens = headArray[i].split(":\\s");
+
+			if (tokens.length == 2) {
+				mp.reqHeaders.put(tokens[0], tokens[1]);
+			} else if (tokens.length == 1) {
+				mp.reqHeaders.put(tokens[0], "");
+			} else {
+				// what a fucking header?!
+				throw new ProxyException("Get a wrong http header: "
+						+ headArray[i]);
+			}
+		}
+
+		return mp;
 	}
 
-	// private MethodProcesser(){}
-
-	private RequestHttpMessage reqHm;
-
-	public MethodProcesser(RequestHttpMessage reqHm) {
-		this.reqHm = reqHm;
-	}
-
-	ResponseHttpMessage requestRemote(RequestHttpMessage hm, boolean isSSL)
+	protected void readHttpHeaders(InputStream in, byte key)
 			throws ProxyException {
-		byte[] headData = hm.getHeadBytes();
-		byte[] bodyData = hm.getBodyBytes();
 
-		byte[] data = new byte[headData.length + bodyData.length];
-		ByteArrayUtil.copy(headData, 0, data, 0, headData.length);
-		ByteArrayUtil.copy(bodyData, 0, data, headData.length, bodyData.length);
+	}
+
+	void requestRemote(byte[] data, String destHost, int destPort,
+			boolean isSSL, OutputStream outToBrowser) throws ProxyException {
+		URL remotePhpURL = Config.getIns().getRemotePhpURL();
+		log.info("remotePhp: " + remotePhpURL.toString());
 
 		String requestBase64String = new String(Base64Coder.encode(data, 0,
 				data.length));
-		String destHostBase64String = Base64Coder.encodeString(hm.getHost());
+		String destHostBase64String = Base64Coder.encodeString(destHost);
 
 		String requestEncodedString = null;
 		String destHostEncodedString = null;
+
 		try {
 			requestEncodedString = URLEncoder.encode(requestBase64String,
 					"US-ASCII");
@@ -58,16 +97,15 @@ public class MethodProcesser {
 
 		byte key = (byte) ((Math.random() * (64)) + 1);
 
-		byte[] postData = ByteArrayUtil.getBytesFromString("request_data="
-				+ requestEncodedString + "&dest_host=" + destHostEncodedString
-				+ "&dest_port=" + hm.getPort() + "&is_ssl=" + isSSL + "&key="
-				+ key);
+		byte[] postData = null;
+
+		postData = ByteArrayUtil
+				.getBytesFromString("request_data=" + requestEncodedString
+						+ "&dest_host=" + destHostEncodedString + "&dest_port="
+						+ destPort + "&is_ssl=" + isSSL + "&key=" + key);
 
 		log.debug("request: "
 				+ ByteArrayUtil.toString(postData, 0, postData.length));
-
-		URL remotePhpURL = Config.getIns().getRemotePhpURL();
-		log.info("remotePhp: " + remotePhpURL.toString());
 
 		HttpURLConnection remotePhpConn = null;
 		try {
@@ -95,7 +133,7 @@ public class MethodProcesser {
 			outToPhp.write(postData);
 
 			outToPhp.flush();
-			// outToPhp.close();
+			outToPhp.close();
 		} catch (IOException e) {
 			throw new ProxyException(e);
 		}
@@ -104,34 +142,95 @@ public class MethodProcesser {
 		try {
 			inFromPhp = remotePhpConn.getInputStream();
 		} catch (IOException e) {
-			log.error(e.getMessage(), e);
-			System.exit(1);
+			throw new ProxyException(e);
 		}
-		ResponseHttpMessage resHm = new ResponseHttpMessage(key);
-		resHm.read(inFromPhp);
-		resHm.removeHeader("Connection");
-		resHm.setHeader("Proxy-Connection", "keep-alive");
-		resHm.setHeader("X-PTP-User-Agent", Config.getIns().getUserAgent());
-		resHm.setHeader("X-PTP-Thread-Name", Thread.currentThread().getName());
-		resHm.setHeader("X-PTP-Remote-PHP", remotePhpURL.toString());
-		resHm.setHeader("X-PTP-Key", String.valueOf(key));
-		resHm.setHeader("X-PTP-TMP", resHm.getBodyDataFile() == null ? ""
-				: resHm.getBodyDataFile().getName());
+		try {
 
-		/*
-		 * try { inFromPhp.close(); } catch (IOException e) { throw new
-		 * ProxyException(e); }
-		 */
+			int resHeadLength = -1;
+			byte[] resHeadBuff = new byte[buff_size];
 
-		return resHm;
+			resHeadLength = HttpUtil.readHttpHead(resHeadBuff, inFromPhp, key);
+			String responseHead = ByteArrayUtil.toString(resHeadBuff, 0,
+					resHeadLength);
+			String[] resHeadArray = responseHead.split("\\r\\n");
+			String resLine = resHeadArray[0];
+			Map<String, String> resHeaders = new HashMap<String, String>();
+			for (int i = 0; i < resHeadArray.length; i++) {
+				String[] tokens = resHeadArray[i].split(":\\s");
+
+				if (tokens.length == 2) {
+					resHeaders.put(tokens[0], tokens[1]);
+				} else if (tokens.length == 1) {
+					resHeaders.put(tokens[0], "");
+				} else {
+					// what a fucking header?!
+					throw new ProxyException("Get a wrong http header: "
+							+ resHeadArray[i]);
+				}
+			}
+
+			resHeaders.remove("Proxy-Connection");
+			resHeaders.remove("Keep-Alive");
+			resHeaders.put("Connection", "close");
+			resHeaders.put("Proxy-Connection", "keep-alive");
+			resHeaders.put("X-PTP-User-Agent", Config.getIns().getUserAgent());
+			resHeaders.put("X-PTP-Thread-Name", Thread.currentThread()
+					.getName());
+			resHeaders.put("X-PTP-Remote-PHP", remotePhpURL.toString());
+			resHeaders.put("X-PTP-Key", String.valueOf(key));
+
+			outToBrowser.write(HttpUtil.getHeadBytes(resLine, resHeaders));
+			outToBrowser.flush();
+
+			int readCount = -1;
+			int phpByteSize = Integer.parseInt(Config.getIns().getValue(
+					"ptp.buff.size", "1024"));
+			byte[] phpByte = new byte[phpByteSize];
+
+			while ((readCount = inFromPhp.read(phpByte, 0, phpByteSize)) != -1) {
+				ByteArrayUtil.decrypt(phpByte, 0, readCount, key);
+				outToBrowser.write(phpByte, 0, readCount);
+				outToBrowser.flush();
+				log.debug(ByteArrayUtil.toString(phpByte, 0, readCount));
+			}
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		try {
+			inFromPhp.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
-	public ResponseHttpMessage process() throws ProxyException {
-		reqHm.removeHeader("Proxy-Connection");
-		reqHm.removeHeader("Keep-Alive");
-		reqHm.setHeader("Connection", "close");
+	public void process() throws ProxyException {
+		URL requestURL = null;
+		try {
+			requestURL = new URL(reqLine.split("\\s")[1]);
+		} catch (MalformedURLException e1) {
+			// TODO
+		}
 
-		return this.requestRemote((RequestHttpMessage) reqHm, false);
+		destHost = requestURL.getHost();
+		log.info("destHost: " + destHost);
+		destHost = Config.getIns().getIp(destHost);
+
+		destPort = requestURL.getPort() != -1 ? requestURL.getPort() : 80;
+		log.info("destPort: " + destPort);
+
+		String method = reqLine.split("\\s")[0];
+		String resourc = URLUtil.getResource(reqLine.split("\\s")[1]);
+		log.info("destPath: " + resourc);
+		String version = reqLine.split("\\s")[2];
+		reqLine = method + " " + resourc + " " + version;
+
+		reqHeaders.remove("Proxy-Connection");
+		reqHeaders.remove("Keep-Alive");
+
+		reqHeaders.put("Connection", "close");
 	}
 
 }

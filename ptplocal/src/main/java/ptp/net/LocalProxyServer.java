@@ -1,19 +1,15 @@
 package ptp.net;
 
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.net.SocketException;
 import java.net.SocketTimeoutException;
 
 import org.apache.log4j.Logger;
 
 import ptp.Config;
-import ptp.net.http.RequestHttpMessage;
-import ptp.net.http.ResponseHttpMessage;
 import ptp.net.mp.MethodProcesser;
 import ptp.net.util.HttpUtil;
 
@@ -113,55 +109,14 @@ class LocalProxyProcessThread implements Runnable {
 				break;
 			}
 			if (availableBytes > 0) {
-				RequestHttpMessage reqHM = new RequestHttpMessage();
+				MethodProcesser mp;
 				try {
-					reqHM.read(inFromBrowser);
-					MethodProcesser mp = new MethodProcesser(reqHM);
-					ResponseHttpMessage resHM = mp.process();
-					outToBrowser.write(resHM.getHeadBytes());
-					outToBrowser.flush();
-					
-					FileInputStream resHMFis = new FileInputStream(resHM.getBodyDataFile());
-					int bodyReadCount=0;
-					int buff_size = Integer.parseInt(Config.getIns().getValue("ptp.local.buff.size", "10240"));
-					byte[] bodyBuff = new byte[buff_size];
-					while(true) {
-						int readCount = resHMFis.read(bodyBuff, 0 , buff_size);
-						if(readCount >= 0) {
-							try {
-								outToBrowser.write(bodyBuff, 0, readCount);
-							} catch(SocketException e) {
-								log.info("stop by browser");
-								resHM.stopReadBody();
-								break;
-							}
-							outToBrowser.flush();
-							bodyReadCount += readCount;
-						} else {
-							if(resHM.isBodyReadEnd() && bodyReadCount==resHM.getBodyDataFile().length()) {
-								break;
-							} else if(!resHM.isBodyReadEnd()){
-								try {
-									Thread.sleep(500);
-								} catch (InterruptedException e) {
-									// TODO Auto-generated catch block
-									e.printStackTrace();
-								}
-							}
-						}
-						
-					}
-					resHMFis.close();
-					
-					reqHM.clear();
-					resHM.clear();
+					mp = MethodProcesser.getIns(inFromBrowser, outToBrowser);
+					mp.process();
 				} catch (ProxyException e) {
-					log.error(e.getMessage(), e);
 					HttpUtil.writeErrorResponse(outToBrowser, e);
-				} catch (IOException e) {
-					log.error(e.getMessage(), e);
-					break;
 				}
+
 				processTimes++;
 			} else {
 				if (retry > 0) {
