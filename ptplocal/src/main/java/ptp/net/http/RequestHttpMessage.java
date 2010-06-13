@@ -1,5 +1,6 @@
 package ptp.net.http;
 
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -32,7 +33,7 @@ public class RequestHttpMessage extends HttpMessage {
 		String[] tokens = this.firstLine.split("\\s");
 		try {
 			this.methodType = MethodProcesser.MethodType.valueOf(tokens[0]);
-		} catch(IllegalArgumentException e) {
+		} catch (IllegalArgumentException e) {
 			throw new ProxyException(e);
 		}
 		this.resource = URLUtil.getResource(tokens[1]);
@@ -99,6 +100,25 @@ public class RequestHttpMessage extends HttpMessage {
 			} catch (IOException e) {
 				throw new ProxyException(e);
 			}
+		}
+	}
+
+	public byte[] getBodyBytes() throws ProxyException {
+		if (this.bodyDataFile == null) {
+			return new byte[0];
+		} else {
+			int length = (int) this.bodyDataFile.length();
+			byte bodyBytes[] = new byte[length];
+			FileInputStream fis = null;
+			try {
+				fis = new FileInputStream(this.bodyDataFile);
+				fis.read(bodyBytes, 0, length);
+				fis.close();
+			} catch (IOException e) {
+				throw new ProxyException(e);
+			}
+
+			return bodyBytes;
 		}
 	}
 }

@@ -35,7 +35,12 @@ public class MethodProcesser {
 
 	ResponseHttpMessage requestRemote(RequestHttpMessage hm, boolean isSSL)
 			throws ProxyException {
-		byte[] data = hm.getHeadBytes();
+		byte[] headData = hm.getHeadBytes();
+		byte[] bodyData = hm.getBodyBytes();
+
+		byte[] data = new byte[headData.length + bodyData.length];
+		ByteArrayUtil.copy(headData, 0, data, 0, headData.length);
+		ByteArrayUtil.copy(bodyData, 0, data, headData.length, bodyData.length);
 
 		String requestBase64String = new String(Base64Coder.encode(data, 0,
 				data.length));
@@ -90,7 +95,7 @@ public class MethodProcesser {
 			outToPhp.write(postData);
 
 			outToPhp.flush();
-			//outToPhp.close();
+			// outToPhp.close();
 		} catch (IOException e) {
 			throw new ProxyException(e);
 		}
@@ -114,12 +119,9 @@ public class MethodProcesser {
 				: resHm.getBodyDataFile().getName());
 
 		/*
-		try {
-			inFromPhp.close();
-		} catch (IOException e) {
-			throw new ProxyException(e);
-		}
-		*/
+		 * try { inFromPhp.close(); } catch (IOException e) { throw new
+		 * ProxyException(e); }
+		 */
 
 		return resHm;
 	}
