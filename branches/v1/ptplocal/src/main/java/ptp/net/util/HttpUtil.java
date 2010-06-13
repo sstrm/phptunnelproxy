@@ -5,6 +5,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
+import java.util.Map;
 
 import org.apache.log4j.Logger;
 
@@ -64,6 +65,19 @@ public class HttpUtil {
 		w.write("</html>");
 		w.flush();
 		w.close();
+	}
+	
+	public static byte[] getHeadBytes(String line, Map<String, String> headers) {
+        final String CRLF = "\r\n";
+        StringBuilder sb = new StringBuilder();
+        sb.append(line).append(CRLF);
+        for (String headerName : headers.keySet()) {
+                String headerValue = headers.get(headerName);
+                sb.append(headerName).append(": ").append(headerValue).append(CRLF);
+        }
+        sb.append(CRLF);
+
+        return ByteArrayUtil.getBytesFromString(sb.toString());
 	}
 
 }
