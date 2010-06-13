@@ -18,6 +18,10 @@ public class ResponseHttpMessage extends HttpMessage {
 	protected int httpCode;
 
 	protected boolean bodyReadEnd = false;
+	
+	protected boolean stoppedReadBody = false;
+	
+	private Thread httpBodyReadThread = null;
 
 	private ResponseHttpMessage() {
 		super();
@@ -42,12 +46,23 @@ public class ResponseHttpMessage extends HttpMessage {
 	protected void readHttpBody(InputStream in) throws ProxyException {
 		FileOutputStream out  = this.getBodyDataFileOutputStream();
 		
-		HttpBodyReadThread hbrt = new HttpBodyReadThread(this, out, in);
-		hbrt.start();
+		httpBodyReadThread = new HttpBodyReadThread(this, out, in);
+		httpBodyReadThread.start();
 	}
 
 	public boolean isBodyReadEnd() {
 		return this.bodyReadEnd;
+	}
+
+	public void stopReadBody() throws ProxyException {
+		this.stoppedReadBody = true;
+		if(this.httpBodyReadThread != null) {
+			try {
+				this.httpBodyReadThread.join();
+			} catch (InterruptedException e) {
+				throw new ProxyException(e);
+			}
+		}
 	}
 
 }
@@ -77,6 +92,9 @@ class HttpBodyReadThread extends Thread {
 			while ((readCount = in.read(buff, 0, buff_size)) != -1) {
 				ByteArrayUtil.decrypt(buff, 0, readCount, rhm.key);
 				out.write(buff, 0, readCount);
+				if(rhm.stoppedReadBody) {
+					break;
+				}
 			}
 			out.close();
 			rhm.bodyReadEnd = true;

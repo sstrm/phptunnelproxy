@@ -6,6 +6,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketException;
 import java.net.SocketTimeoutException;
 
 import org.apache.log4j.Logger;
@@ -127,7 +128,13 @@ class LocalProxyProcessThread implements Runnable {
 					while(true) {
 						int readCount = resHMFis.read(bodyBuff, 0 , buff_size);
 						if(readCount >= 0) {
-							outToBrowser.write(bodyBuff, 0, readCount);
+							try {
+								outToBrowser.write(bodyBuff, 0, readCount);
+							} catch(SocketException e) {
+								log.info("stop by browser");
+								resHM.stopReadBody();
+								break;
+							}
 							outToBrowser.flush();
 							bodyReadCount += readCount;
 						} else {
