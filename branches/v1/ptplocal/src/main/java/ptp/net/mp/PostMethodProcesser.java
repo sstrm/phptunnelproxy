@@ -8,7 +8,6 @@ import org.apache.log4j.Logger;
 
 import ptp.net.ProxyException;
 import ptp.util.ByteArrayUtil;
-import ptp.util.HttpUtil;
 
 public class PostMethodProcesser extends MethodProcesser {
 
@@ -25,10 +24,18 @@ public class PostMethodProcesser extends MethodProcesser {
 
 	@Override
 	public void process() throws ProxyException {
-		super.process();
-		byte[] newRequestHeaderData = HttpUtil.getHeadBytes(reqLine, reqHeaders);
+		String destHost = reqHH.getDestHost();
+		int destPort = reqHH.getDestPort();
+		
+		reqHH.removeHeader("Proxy-Connection");
+		reqHH.removeHeader("Keep-Alive");
+		reqHH.setHeader("Connection", "close");
+		
+		reqHH.normalizeRequestLine();
+		
+		byte[] newRequestHeaderData = reqHH.getHeadBytes();
 
-		int postContentLength = Integer.parseInt(reqHeaders.get("Content-Length"));
+		int postContentLength = Integer.parseInt(reqHH.getHeader("Content-Length"));
 		byte[] newRequestBodyData = new byte[postContentLength];
 		int postContentReadCount = 0;
 		while (postContentReadCount < postContentLength) {

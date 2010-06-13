@@ -21,12 +21,16 @@ final class GetMethodProcesser extends MethodProcesser {
 
 	@Override
 	public void process() throws ProxyException {
+		String destHost = reqHH.getDestHost();
+		int destPort = reqHH.getDestPort();
 		
-		super.process();
-
-		requestRemote(ptp.util.HttpUtil
-				.getHeadBytes(reqLine, reqHeaders), destHost, destPort,
-				false, outToBrowser);
+		reqHH.removeHeader("Proxy-Connection");
+		reqHH.removeHeader("Keep-Alive");
+		reqHH.setHeader("Connection", "close");
+		
+		reqHH.normalizeRequestLine();
+		requestRemote(reqHH.getHeadBytes(), destHost, destPort, false,
+				outToBrowser);
 		log.info("get method process done!");
 	}
 
