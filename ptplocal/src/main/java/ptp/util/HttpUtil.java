@@ -1,4 +1,4 @@
-package ptp.ui;
+package ptp.util;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -10,7 +10,6 @@ import java.util.Map;
 import org.apache.log4j.Logger;
 
 import ptp.net.ProxyException;
-import ptp.util.ByteArrayUtil;
 
 public class HttpUtil {
 	private static Logger log = Logger.getLogger(HttpUtil.class);

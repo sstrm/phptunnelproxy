@@ -16,9 +16,9 @@ import org.apache.log4j.Logger;
 
 import ptp.Config;
 import ptp.net.ProxyException;
-import ptp.ui.HttpUtil;
 import ptp.util.Base64Coder;
 import ptp.util.ByteArrayUtil;
+import ptp.util.HttpUtil;
 import ptp.util.URLUtil;
 
 public abstract class MethodProcesser {
