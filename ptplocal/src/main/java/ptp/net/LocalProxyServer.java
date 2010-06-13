@@ -3,6 +3,8 @@ package ptp.net;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
@@ -11,7 +13,6 @@ import org.apache.log4j.Logger;
 
 import ptp.Config;
 import ptp.net.mp.MethodProcesser;
-import ptp.util.HttpUtil;
 
 public class LocalProxyServer {
 
@@ -114,7 +115,7 @@ class LocalProxyProcessThread implements Runnable {
 					mp = MethodProcesser.getIns(inFromBrowser, outToBrowser);
 					mp.process();
 				} catch (ProxyException e) {
-					HttpUtil.writeErrorResponse(outToBrowser, e);
+					writeErrorResponse(outToBrowser, e);
 				}
 
 				processTimes++;
@@ -141,6 +142,25 @@ class LocalProxyProcessThread implements Runnable {
 		}
 		log.info(Thread.currentThread().getName() + " end, it proceed "
 				+ processTimes + " requests from browser");
+	}
+
+	private void writeErrorResponse(OutputStream outToBrowser,
+			ProxyException proxyException) {
+		log.info("wirite error page for: " + proxyException.getMessage());
+		PrintWriter w = new PrintWriter(new OutputStreamWriter(outToBrowser));
+		w.write("HTTP/1.1 500 Internal Server Error\r\n");
+		w.write("Content-Type: text/html; charset=utf-8\r\n");
+		w.write("Connection: close\r\n");
+		w.write("\r\n");
+
+		w.write("<html>");
+		w.write("<head><title>HTTP 500 Internal Server Error</title><head>");
+		w.write("<body><pre>");
+		proxyException.printStackTrace(w);
+		w.write("</pre></body>");
+		w.write("</html>");
+		w.flush();
+		w.close();
 	}
 
 }
