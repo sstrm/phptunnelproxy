@@ -1,4 +1,4 @@
-package ptp.net.util;
+package ptp.ui;
 
 import java.io.IOException;
 import java.io.InputStream;

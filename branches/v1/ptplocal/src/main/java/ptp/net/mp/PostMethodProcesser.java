@@ -7,7 +7,7 @@ import java.io.OutputStream;
 import org.apache.log4j.Logger;
 
 import ptp.net.ProxyException;
-import ptp.net.util.HttpUtil;
+import ptp.ui.HttpUtil;
 import ptp.util.ByteArrayUtil;
 
 public class PostMethodProcesser extends MethodProcesser {

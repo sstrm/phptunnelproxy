@@ -11,7 +11,7 @@ import org.apache.log4j.Logger;
 
 import ptp.Config;
 import ptp.net.mp.MethodProcesser;
-import ptp.net.util.HttpUtil;
+import ptp.ui.HttpUtil;
 
 public class LocalProxyServer {
 
