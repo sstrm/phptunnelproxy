@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="ptplocal" default="dist" basedir=".">
+	<property file="build.properties" />
+	<property name="app.name" value="${ant.project.name}" />
+	<property name="app.version" value="0.0" />
+	<property name="dist.dir" value="${basedir}/dist" />
+	<property name="bin.dir" value="${basedir}/bin" />
+	<property name="doc.dir" value="${basedir}/doc" />
+	<property name="src.dir" value="${basedir}/src" />
+	<property name="src.main.dir" value="${src.dir}/main/java" />
+	<property name="src.test.dir" value="${src.dir}/test/java" />
+	<property name="conf.main.dir" value="${src.dir}/main/conf" />
+	<property name="conf.test.dir" value="${src.dir}/test/conf" />
+	<property name="lib.dir" value="${basedir}/lib" />
+	<property name="etc.dir" value="${basedir}/etc" />
+	<property name="shell.dir" value="${basedir}/shell" />
+
+	<path id="build.classpath">
+		<fileset file="${lib.dir}/*.jar">
+			<exclude name="*sources*" />
+		</fileset>
+		<pathelement path="${bin.dir}" />
+	</path>
+
+	<path id="ant-task.classpath">
+		<fileset file="${lib.dir}/ant-task/*.jar">
+			<exclude name="*sources*" />
+		</fileset>
+	</path>
+
+	<taskdef name="eclipse" classname="com.xmxsuperstar.ant.task.EclipseProjectTask">
+		<classpath refid="ant-task.classpath" />
+	</taskdef>
+	
+	<taskdef resource="net/sf/antcontrib/antlib.xml" >
+		<classpath refid="ant-task.classpath" />
+	</taskdef>
+
+	<target name="clean">
+		<delete dir="${bin.dir}" />
+		<delete dir="${dist.dir}" />
+		<delete file="${conf.main.dir}/etc/app.properties" />
+	</target>
+
+	<target name="pre-compile">
+		<exec executable="svnversion" failifexecutionfails="no" outputproperty="_app.svn.version"> 
+			<arg value="${basedir}"/>  
+			<arg value="-n"/> 
+		</exec>
+		<propertyregex property="app.svn.version" input="${_app.svn.version}" regexp="(\d*:){0,1}(\d+)M?S?P?" select="\2"/>
+		<property name="build.version" value="${app.version}.${app.svn.version}"/>
+		<propertyfile file="${conf.main.dir}/etc/app.properties" >
+			<entry  key="build.version" value="${build.version}"/>
+			<entry  key="app.compile.time" type="date" value="now" pattern="yyyy-MM-dd HH:mm"/>
+		</propertyfile>
+
+	</target>
+
+	<target name="compile" description="compile all java sources" depends="pre-compile">
+		<mkdir dir="${bin.dir}" />
+		<javac destdir="${bin.dir}" includeantruntime="false" srcdir="${src.main.dir}" debug="on" source="1.6" target="1.6" encoding="UTF-8">
+			<classpath refid="build.classpath" />
+		</javac>
+		<javac destdir="${bin.dir}" includeantruntime="false" srcdir="${src.test.dir}" debug="on" source="1.6" target="1.6" encoding="UTF-8">
+			<classpath refid="build.classpath" />
+		</javac>
+		<copy todir="${bin.dir}">
+			<fileset dir="${conf.main.dir}" />
+		</copy>
+	</target>
+
+	<target name="jar" depends="compile" description="build a jar package">
+		<mkdir dir="${dist.dir}" />
+		<jar destfile="${dist.dir}/${app.name}-${build.version}.jar" basedir="${bin.dir}">
+			<fileset file="${basedir}/LICENSE.txt" />
+			<fileset file="${basedir}/README.txt" />
+		</jar>
+	</target>
+
+	<target name="src-eclipse-pkg" description="build a source package for eclipse source attachment">
+		<mkdir dir="${dist.dir}" />
+		<jar destfile="${dist.dir}/${app.name}-${build.version}-sources.jar">
+			<fileset dir="${src.main.dir}" />
+			<fileset dir="${src.test.dir}" />
+			<fileset dir="${conf.main.dir}" />
+			<fileset dir="${conf.test.dir}" />
+			<fileset file="${basedir}/LICENSE.txt" />
+			<fileset file="${basedir}/README.txt" />
+		</jar>
+	</target>
+
+	<target name="src-dist-pkg" description="build a source package for distributing">
+		<mkdir dir="${dist.dir}" />
+		<tar destfile="${dist.dir}/${app.name}-${build.version}-src.tar">
+			<tarfileset dir="${basedir}" prefix="${app.name}-${build.version}">
+				<exclude name="dist/" />
+				<exclude name="bin/" />
+				<exclude name=".*/" />
+				<exclude name="build.properties" />
+				<exclude name="etc/log4j.properties" />
+				<exclude name="*log*" />
+				<exclude name="**/etc/app.properties" />
+			</tarfileset>
+		</tar>
+		<bzip2 src="${dist.dir}/${app.name}-${build.version}-src.tar" destfile="${dist.dir}/${app.name}-${build.version}-src.tar.bz2"/>
+		<delete file="${dist.dir}/${app.name}-${build.version}-src.tar" />
+	</target>
+
+	<target name="bin-dist-pkg" depends="jar" description="build a binary package for distribution">
+		<mkdir dir="${dist.dir}" />
+		<tar destfile="${dist.dir}/${app.name}-${build.version}-bin.tar">
+			<tarfileset prefix="${app.name}/lib" dir="${lib.dir}">
+				<exclude name="ant-task/" />
+				<exclude name="junit*.jar" />
+				<exclude name="*sources*" />
+			</tarfileset>
+			<tarfileset fullpath="${app.name}/lib/${app.name}-${build.version}.jar" file="${dist.dir}/${app.name}-${build.version}.jar" />
+			<tarfileset prefix="${app.name}" dir="${shell.dir}" filemode="755" />
+			<tarfileset prefix="${app.name}/docs" dir="${doc.dir}" />
+			<tarfileset prefix="${app.name}/etc" dir="${etc.dir}">
+				<exclude name="log4j.properties" />
+			</tarfileset>
+			<tarfileset prefix="${app.name}" file="${basedir}/LICENSE.txt" />
+			<tarfileset prefix="${app.name}" file="${basedir}/README.txt" />
+		</tar>
+		<bzip2 src="${dist.dir}/${app.name}-${build.version}-bin.tar" destfile="${dist.dir}/${app.name}-${build.version}-bin.tar.bz2"/>
+		<delete file="${dist.dir}/${app.name}-${build.version}-bin.tar" />
+	</target>
+
+	<target name="dist" description="build binary jar package and source package" depends="jar, src-eclipse-pkg, src-dist-pkg, bin-dist-pkg" />
+
+	<target name="eclipse" description="create project files for importing into eclipse">
+		<eclipse />
+	</target>
+
+	<target name="clean-all" depends="clean">
+		<delete file="${basedir}/.project" />
+		<delete file="${basedir}/.classpath" />
+		<delete dir="${basedir}/.settings" />
+	</target>
+
+</project>
