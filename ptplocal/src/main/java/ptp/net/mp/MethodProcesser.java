@@ -45,38 +45,21 @@ public abstract class MethodProcesser {
 		return mp;
 	}
 
-	void requestRemote(byte[] data, String destHost, int destPort,
+	protected void requestRemote(byte[] data, String destHost, int destPort,
 			boolean isSSL, OutputStream outToBrowser) throws ProxyException {
-		
+
 		log.debug("request data: \n"
 				+ ByteArrayUtil.toString(data, 0, data.length));
 
 		URL remotePhpURL = Config.getIns().getRemotePhpURL();
 		log.info("remotePhp: " + remotePhpURL.toString());
 
-		String requestBase64String = new String(Base64Coder.encode(data, 0,
-				data.length));
-		String destHostBase64String = Base64Coder.encodeString(destHost);
-
-		String requestEncodedString = null;
-		String destHostEncodedString = null;
-
-		try {
-			requestEncodedString = URLEncoder.encode(requestBase64String,
-					"US-ASCII");
-			destHostEncodedString = URLEncoder.encode(destHostBase64String,
-					"US-ASCII");
-		} catch (UnsupportedEncodingException e2) {
-		}
-
 		byte key = (byte) ((Math.random() * (64)) + 1);
 
-		byte[] postData = null;
-
-		postData = ByteArrayUtil
-				.getBytesFromString("request_data=" + requestEncodedString
-						+ "&dest_host=" + destHostEncodedString + "&dest_port="
-						+ destPort + "&is_ssl=" + isSSL + "&key=" + key);
+		byte[] postData = ByteArrayUtil.getBytesFromString("request_data="
+				+ base64urlEncode(data) + "&dest_host="
+				+ base64urlEncode(destHost) + "&dest_port=" + destPort
+				+ "&is_ssl=" + isSSL + "&key=" + key);
 
 		log.debug("request: "
 				+ ByteArrayUtil.toString(postData, 0, postData.length));
@@ -134,11 +117,9 @@ public abstract class MethodProcesser {
 			outToBrowser.flush();
 
 			int readCount = -1;
-			int phpByteSize = Integer.parseInt(Config.getIns().getValue(
-					"ptp.local.buff.size", "102400"));
-			byte[] phpByte = new byte[phpByteSize];
+			byte[] phpByte = new byte[buff_size];
 
-			while ((readCount = inFromPhp.read(phpByte, 0, phpByteSize)) != -1) {
+			while ((readCount = inFromPhp.read(phpByte, 0, buff_size)) != -1) {
 				ByteArrayUtil.decrypt(phpByte, 0, readCount, key);
 				outToBrowser.write(phpByte, 0, readCount);
 				outToBrowser.flush();
@@ -159,6 +140,21 @@ public abstract class MethodProcesser {
 			}
 		}
 
+	}
+
+	private String base64urlEncode(String src) {
+		return base64urlEncode(ByteArrayUtil.getBytesFromString(src));
+	}
+
+	private String base64urlEncode(byte[] src) {
+		String base64String = new String(Base64Coder.encode(src, 0, src.length));
+		String urlEncodedString = null;
+		try {
+			urlEncodedString = URLEncoder.encode(base64String, "US-ASCII");
+		} catch (UnsupportedEncodingException e) {
+			log.error(e.getMessage(), e);
+		}
+		return urlEncodedString;
 	}
 
 	public abstract void process() throws ProxyException;

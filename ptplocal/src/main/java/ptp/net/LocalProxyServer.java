@@ -56,7 +56,7 @@ public class LocalProxyServer {
 				Thread localProxyProcessThread = new Thread(
 						new LocalProxyProcessThread(browserSocket));
 				localProxyProcessThread.start();
-				log.debug("thread count: " + Thread.activeCount());
+				log.info("current thread count: " + Thread.activeCount());
 			}
 		}
 		localProxyServerSocket.close();
