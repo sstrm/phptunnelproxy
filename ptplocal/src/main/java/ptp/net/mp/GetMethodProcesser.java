@@ -24,7 +24,7 @@ final class GetMethodProcesser extends MethodProcesser {
 		
 		super.process();
 
-		requestRemote(ptp.net.util.HttpUtil
+		requestRemote(ptp.ui.HttpUtil
 				.getHeadBytes(reqLine, reqHeaders), destHost, destPort,
 				false, outToBrowser);
 		log.info("get method process done!");
