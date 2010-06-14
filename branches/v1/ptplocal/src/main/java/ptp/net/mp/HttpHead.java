@@ -38,6 +38,52 @@ public class HttpHead {
 	private String line;
 	private Map<String, String> headers = new HashMap<String, String>();
 
+	private void analize() {
+		if (line.startsWith("HTTP")) {
+			Matcher m = resLinePattern.matcher(line);
+			if (m.matches()) {
+				httpVersion = m.group(1);
+				httpCode = Integer.parseInt(m.group(2));
+			}
+		} else {
+			Matcher m1 = reqLinePattern.matcher(line);
+			if (m1.matches()) {
+				methodName = m1.group(1);
+				if (methodName.equals("CONNECT")) {
+					String connectDest = m1.group(2);
+					destHost = connectDest.split(":")[0];
+					destPort = Integer.parseInt(connectDest.split(":")[1]);
+				} else {
+					try {
+						destURL = new URL(m1.group(2));
+					} catch (MalformedURLException e) {
+						destURL = null;
+						this.destResource = m1.group(2);
+					}
+					if (destURL != null) {
+						destHost = Config.getIns().getIp(destURL.getHost());
+						destPort = destURL.getPort() != -1 ? getDestURL()
+								.getPort() : destURL.getDefaultPort();
+					}
+
+				}
+
+				httpVersion = m1.group(3);
+			}
+
+			Matcher m2 = reqResourcePattern.matcher(line);
+			if (m2.find()) {
+				destResource = m2.group(1);
+			}
+		}
+	}
+
+	public HttpHead(String line) throws ProxyException {
+
+		this.line = line;
+		analize();
+	}
+
 	private int readHttpHead(byte[] buff, InputStream in, byte key)
 			throws ProxyException {
 		int index = 0;
@@ -90,32 +136,11 @@ public class HttpHead {
 			}
 		}
 
-		if (line.startsWith("HTTP")) {
-			Matcher m = resLinePattern.matcher(line);
-			if (m.matches()) {
-				httpVersion = m.group(1);
-				httpCode = Integer.parseInt(m.group(2));
-			}
-		} else {
-			Matcher m1 = reqLinePattern.matcher(line);
-			if (m1.matches()) {
-				methodName = m1.group(1);
-				try {
-					destURL = new URL(m1.group(2));
-				} catch (MalformedURLException e) {
-					log.error(e.getMessage(), e);
-				}
-				destHost = Config.getIns().getIp(destURL.getHost());
-				destPort = destURL.getPort() != -1 ? getDestURL().getPort()
-						: 80;
-				httpVersion = m1.group(3);
-			}
-
-			Matcher m2 = reqResourcePattern.matcher(line);
-			if (m2.find()) {
-				destResource = m2.group(1);
-			}
-		}
+		analize();
+	}
+	
+	public String getLine() {
+		return this.line;
 	}
 
 	public void setHeader(String headerName, String headerValue) {

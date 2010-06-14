@@ -34,6 +34,8 @@ public abstract class MethodProcesser {
 			mp = new GetMethodProcesser(inFromBrowser, outToBrowser);
 		else if (reqHH.getMethodName().equals("POST"))
 			mp = new PostMethodProcesser(inFromBrowser, outToBrowser);
+		else if (reqHH.getMethodName().equals("CONNECT"))
+			mp = new ConnectMethodprocesser(inFromBrowser, outToBrowser);
 		else {
 			throw new ProxyException("Not supportted http Method: "
 					+ reqHH.getMethodName());
@@ -41,7 +43,31 @@ public abstract class MethodProcesser {
 
 		mp.reqHH = reqHH;
 
-		log.info(mp.reqHH.getMethodName() + ": " + mp.reqHH.getDestURL());
+		log.info(mp.reqHH.getLine());
+		return mp;
+	}
+
+	public static MethodProcesser getSSLIns(InputStream inFromBrowser,
+			OutputStream outToBrowser, String destHost, int destPort)
+			throws ProxyException {
+		MethodProcesser mp = null;
+
+		HttpHead reqHH = new HttpHead(inFromBrowser, (byte) 0);
+
+		if (reqHH.getMethodName().equals("GET"))
+			mp = new SSLGetMethodProcesser(inFromBrowser, outToBrowser,
+					destHost, destPort);
+		else if (reqHH.getMethodName().equals("POST"))
+			mp = new SSLPostMethodProcesser(inFromBrowser, outToBrowser,
+					destHost, destPort);
+		else {
+			throw new ProxyException("Not supportted http Method: "
+					+ reqHH.getMethodName());
+		}
+
+		mp.reqHH = reqHH;
+
+		log.info(mp.reqHH.getLine());
 		return mp;
 	}
 

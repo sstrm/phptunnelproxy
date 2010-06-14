@@ -146,7 +146,7 @@ class LocalProxyProcessThread implements Runnable {
 
 	private void writeErrorResponse(OutputStream outToBrowser,
 			ProxyException proxyException) {
-		log.info("wirite error page for: " + proxyException.getMessage());
+		log.error("wirite error page for: " + proxyException.getMessage(), proxyException);
 		PrintWriter w = new PrintWriter(new OutputStreamWriter(outToBrowser));
 		w.write("HTTP/1.1 500 Internal Server Error\r\n");
 		w.write("Content-Type: text/html; charset=utf-8\r\n");
