@@ -1,4 +1,4 @@
-package ptp.pac;
+package ptp.net.pac;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -17,12 +17,36 @@ import org.apache.log4j.Logger;
 import ptp.Config;
 import ptp.util.Base64Coder;
 
-public class PacServer implements Runnable {
+public class PacServer {
 	private static Logger log = Logger.getLogger(PacServer.class);
+
+	PacServerThread pacServerThread = null;
+
+	public PacServer() {
+		pacServerThread = new PacServerThread();
+	}
+
+	public void startService() {
+		pacServerThread.start();
+	}
+
+	public void stopService() {
+		pacServerThread.shutdown();
+		try {
+			pacServerThread.join();
+		} catch (InterruptedException e) {
+			log.error(e.getMessage(), e);
+		}
+	}
+
+}
+
+class PacServerThread extends Thread {
+	private static Logger log = Logger.getLogger(PacServerThread.class);
 
 	private boolean isStopped = false;
 
-	public synchronized void stopServer() {
+	public synchronized void shutdown() {
 		isStopped = true;
 	}
 
@@ -231,9 +255,5 @@ public class PacServer implements Runnable {
 		return str.replace("/", "\\/").replace(".", "\\.").replace(":", "\\:")
 				.replace("%", "\\%").replace("*", ".*").replace("-", "\\-")
 				.replace("&", "\\&").replace("?", "\\?");
-	}
-
-	public static void main(String[] args) {
-		System.out.println(new PacServer().regEncode("http://nsf.110mb.com"));
 	}
 }
