@@ -16,8 +16,7 @@ public class PostMethodProcesser extends MethodProcesser {
 	private InputStream inFromBrowser;
 	private OutputStream outToBrowser;
 
-	PostMethodProcesser(InputStream inFromBrowser,
-			OutputStream outToBrowser) {
+	PostMethodProcesser(InputStream inFromBrowser, OutputStream outToBrowser) {
 		this.inFromBrowser = inFromBrowser;
 		this.outToBrowser = outToBrowser;
 	}
@@ -26,16 +25,25 @@ public class PostMethodProcesser extends MethodProcesser {
 	public void process() throws ProxyException {
 		String destHost = reqHH.getDestHost();
 		int destPort = reqHH.getDestPort();
+
+		process(destHost, destPort, false);
 		
+		log.info("post method process done!");
+	}
+
+	public void process(String destHost, int destPort, boolean isSSL)
+			throws ProxyException {
+
 		reqHH.removeHeader("Proxy-Connection");
 		reqHH.removeHeader("Keep-Alive");
 		reqHH.setHeader("Connection", "close");
-		
+
 		reqHH.normalizeRequestLine();
-		
+
 		byte[] newRequestHeaderData = reqHH.getHeadBytes();
 
-		int postContentLength = Integer.parseInt(reqHH.getHeader("Content-Length"));
+		int postContentLength = Integer.parseInt(reqHH
+				.getHeader("Content-Length"));
 		byte[] newRequestBodyData = new byte[postContentLength];
 		int postContentReadCount = 0;
 		while (postContentReadCount < postContentLength) {
@@ -57,8 +65,7 @@ public class PostMethodProcesser extends MethodProcesser {
 		ByteArrayUtil.copy(newRequestBodyData, 0, newRequestData,
 				newRequestHeaderData.length, newRequestBodyData.length);
 
-		requestRemote(newRequestData, destHost, destPort, false, outToBrowser);
-		log.info("post method process done!");
+		requestRemote(newRequestData, destHost, destPort, isSSL, outToBrowser);
 	}
 
 }
