@@ -7,6 +7,7 @@ import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketException;
 import java.net.SocketTimeoutException;
 
 import org.apache.log4j.Logger;
@@ -15,6 +16,28 @@ import ptp.Config;
 import ptp.net.mp.MethodProcesser;
 
 public class LocalProxyServer {
+	private static Logger log = Logger.getLogger(LocalProxyServer.class);
+	
+	LocalProxyServerThread localProxyServerThread = null;
+	public LocalProxyServer() {
+		localProxyServerThread = new LocalProxyServerThread();
+	}
+	
+	public void startService() {
+		localProxyServerThread.start();
+	}
+
+	public void stopService() {
+		localProxyServerThread.shutdown();
+		try {
+			localProxyServerThread.join();
+		} catch (InterruptedException e) {
+			log.error(e.getMessage(), e);
+		}
+	}
+}
+
+class LocalProxyServerThread extends Thread{
 
 	private static Logger log = Logger.getLogger(LocalProxyServer.class);
 
@@ -25,22 +48,30 @@ public class LocalProxyServer {
 
 	ServerSocket localProxyServerSocket;
 
-	public LocalProxyServer() {
+	public LocalProxyServerThread() {
 		localProxyPort = Integer.parseInt(Config.getIns().getValue(
 				"ptp.local.proxy.port", "8887"));
 		localProxyTimeOut = 1000;
 	}
 
-	public void startService() throws Exception {
+	public void shutdown() {
+		isStopped = true;
+	}
+
+	public void run() {
 		try {
 			localProxyServerSocket = new ServerSocket(localProxyPort);
 		} catch (IOException e) {
 			log.error("create local proxy server socket failed", e);
-			throw e;
+			return;
 		}
 		log.info("local proxy server started on port: " + localProxyPort);
 
-		localProxyServerSocket.setSoTimeout(1000);
+		try {
+			localProxyServerSocket.setSoTimeout(1000);
+		} catch (SocketException e) {
+			log.error(e.getMessage(), e);
+		}
 
 		while (!isStopped) {
 			Socket browserSocket = null;
@@ -48,6 +79,9 @@ public class LocalProxyServer {
 				browserSocket = localProxyServerSocket.accept();
 			} catch (SocketTimeoutException ste) {
 				continue;
+			} catch (IOException e) {
+				log.error(e.getMessage(), e);
+				break;
 			}
 			if (browserSocket != null) {
 				log.info("visit from browser: "
@@ -59,7 +93,11 @@ public class LocalProxyServer {
 				log.info("current thread count: " + Thread.activeCount());
 			}
 		}
-		localProxyServerSocket.close();
+		try {
+			localProxyServerSocket.close();
+		} catch (IOException e) {
+			log.error(e.getMessage(), e);
+		}
 		log.info("stop local proxy server");
 	}
 
