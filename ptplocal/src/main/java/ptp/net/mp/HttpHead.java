@@ -4,8 +4,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -36,7 +36,7 @@ public class HttpHead {
 	private String methodName;
 
 	private String line;
-	private Map<String, String> headers = new HashMap<String, String>();
+	private List<HeaderNameValue> headers = new ArrayList<HeaderNameValue>();
 
 	private void analize() {
 		if (line.startsWith("HTTP")) {
@@ -123,12 +123,11 @@ public class HttpHead {
 		line = headArray[0];
 
 		for (int i = 1; i < headArray.length; i++) {
-			String[] tokens = headArray[i].split(":\\s");
-
-			if (tokens.length == 2) {
-				headers.put(tokens[0], tokens[1]);
-			} else if (tokens.length == 1) {
-				headers.put(tokens[0], "");
+			int splitIndex = headArray[i].indexOf(": ");
+			if (splitIndex > 0) {
+				String headerName = headArray[i].substring(0, splitIndex);
+				String headerValue = headArray[i].substring(splitIndex + 2);
+				headers.add(new HeaderNameValue(headerName, headerValue));
 			} else {
 				// what a fucking header?!
 				throw new ProxyException("Get a wrong http header: "
@@ -138,21 +137,32 @@ public class HttpHead {
 
 		analize();
 	}
-	
+
 	public String getLine() {
 		return this.line;
 	}
 
 	public void setHeader(String headerName, String headerValue) {
-		headers.put(headerName, headerValue);
+		removeHeader(headerName);
+		this.headers.add(new HeaderNameValue(headerName, headerValue));
 	}
 
-	public void removeHeader(String headerName) {
-		headers.remove(headerName);
+	public boolean removeHeader(String headerName) {
+		for (HeaderNameValue hnv : this.headers) {
+			if (hnv.getName().equals(headerName)) {
+				return this.headers.remove(hnv);
+			}
+		}
+		return false;
 	}
 
 	public String getHeader(String headerName) {
-		return headers.get(headerName);
+		for (HeaderNameValue hnv : this.headers) {
+			if (hnv.getName().equals(headerName)) {
+				return hnv.getValue();
+			}
+		}
+		return null;
 	}
 
 	public String getMethodName() {
@@ -197,12 +207,30 @@ public class HttpHead {
 		final String CRLF = "\r\n";
 		StringBuilder sb = new StringBuilder();
 		sb.append(line).append(CRLF);
-		for (String headerName : headers.keySet()) {
-			String headerValue = headers.get(headerName);
-			sb.append(headerName).append(": ").append(headerValue).append(CRLF);
+		for (HeaderNameValue hnv : this.headers) {
+			sb.append(hnv.getName()).append(": ").append(hnv.getValue())
+					.append(CRLF);
 		}
 		sb.append(CRLF);
 
 		return ByteArrayUtil.getBytesFromString(sb.toString());
+	}
+}
+
+class HeaderNameValue {
+	String headerName;
+	String headerValue;
+
+	HeaderNameValue(String headerName, String headerValue) {
+		this.headerName = headerName;
+		this.headerValue = headerValue;
+	}
+
+	public String getName() {
+		return this.headerName;
+	}
+
+	public String getValue() {
+		return this.headerValue;
 	}
 }

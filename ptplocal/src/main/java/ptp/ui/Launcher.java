@@ -1,7 +1,6 @@
 package ptp.ui;
 
 import java.io.File;
-import java.util.Enumeration;
 import java.util.Properties;
 
 import org.apache.log4j.Logger;
@@ -23,12 +22,11 @@ public abstract class Launcher {
 
 	public static void logSysProps() {
 		Properties sysProps = System.getProperties();
-		Enumeration<?> sysPropNames = sysProps.propertyNames();
-		while (sysPropNames.hasMoreElements()) {
-			String key = (String) sysPropNames.nextElement();
-			log.debug("System Property: " + key + " = "
-					+ sysProps.getProperty(key));
-		}
+		log.info("java.runtime.version: "
+				+ sysProps.getProperty("java.runtime.version"));
+		log.info("java.vm.vendor: " + sysProps.getProperty("java.vm.vendor"));
+		log.info("os.name: " + sysProps.getProperty("os.name"));
+		log.info("os.version: " + sysProps.getProperty("os.version"));
 	}
 
 }
