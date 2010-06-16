@@ -21,6 +21,9 @@ public abstract class Launcher {
 					.getResource("/etc/log4j.properties"));
 		}
 
+	}
+	
+	protected static void promot() {
 		log.info(Config.getIns().getUserAgent() + " starts!");
 
 		Properties sysProps = System.getProperties();
