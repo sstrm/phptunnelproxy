@@ -41,6 +41,7 @@ public class GUILauncher extends Launcher {
 	 */
 	public static void main(String[] args) {
 		createUI();
+		promot();
 	}
 
 	public static void startServer() {

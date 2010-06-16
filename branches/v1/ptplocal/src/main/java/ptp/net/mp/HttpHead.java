@@ -218,8 +218,8 @@ public class HttpHead {
 }
 
 class HeaderNameValue {
-	String headerName;
-	String headerValue;
+	private String headerName;
+	private String headerValue;
 
 	HeaderNameValue(String headerName, String headerValue) {
 		this.headerName = headerName;
