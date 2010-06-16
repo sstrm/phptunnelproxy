@@ -41,7 +41,6 @@ public class GUILauncher extends Launcher {
 	 */
 	public static void main(String[] args) {
 		createUI();
-		logSysProps();
 	}
 
 	public static void startServer() {
@@ -60,7 +59,6 @@ public class GUILauncher extends Launcher {
 		if (pacServer != null) {
 			pacServer.stopService();
 		}
-		log.info("server stop successfully!");
 	}
 
 	public static void createUI() {
@@ -206,6 +204,7 @@ public class GUILauncher extends Launcher {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				stopServer();
+				log.info(Config.getIns().getUserAgent() + " stops!");
 				System.exit(0);
 			}
 		});
