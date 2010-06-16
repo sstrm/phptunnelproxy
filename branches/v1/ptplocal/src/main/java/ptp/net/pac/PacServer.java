@@ -3,6 +3,8 @@ package ptp.net.pac;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
@@ -156,7 +158,8 @@ class PacServerThread extends Thread {
 		try {
 			URL gfwlistUrl = new URL(Config.getIns().getValue(
 					"ptp.local.pac.gfwlist",
-					PacServer.class.getResource("/etc/gfwlist.txt").toString()));
+					"http://autoproxy-gfwlist.googlecode.com"
+							+ "/svn/trunk/gfwlist.txt"));
 			log.debug(Config.getIns().getValue("ptp.local.pac.gfwlist"));
 			log.info("gfwlist: " + gfwlistUrl.toString());
 			URLConnection gfwlistConn = gfwlistUrl.openConnection(Config
@@ -167,7 +170,19 @@ class PacServerThread extends Thread {
 					.getInputStream()));
 		} catch (IOException e1) {
 			log.error(e1.getMessage(), e1);
-			return "";
+			URL gfwlistUrl = PacServer.class.getResource("/etc/gfwlist.txt");
+			log.debug(Config.getIns().getValue("ptp.local.pac.gfwlist"));
+			log.info("gfwlist: " + gfwlistUrl.toString());
+			URLConnection gfwlistConn;
+			try {
+				gfwlistConn = gfwlistUrl.openConnection(Config.getIns()
+						.getProxy());
+				gfwlistR = new BufferedReader(new InputStreamReader(gfwlistConn
+						.getInputStream()));
+			} catch (IOException e) {
+				log.error(e.getMessage(), e);
+				return "";
+			}
 		}
 
 		StringBuilder gfwlistContent = new StringBuilder();
@@ -209,37 +224,19 @@ class PacServerThread extends Thread {
 					"\n");
 
 			String line = null;
+
+			File customRuleFile = new File("etc/gfwlist.txt");
+			if (customRuleFile.exists()) {
+				BufferedReader customeRuleR = new BufferedReader(
+						new InputStreamReader(new FileInputStream(
+								customRuleFile)));
+				while ((line = customeRuleR.readLine()) != null) {
+					pacContent.append(convertRule(line));
+				}
+			}
+
 			while ((line = ruleR.readLine()) != null) {
-				log.debug(line);
-				if (line.isEmpty()) {
-					continue;
-				}
-
-				if (line.startsWith("[") || line.startsWith("!")) {
-					continue;
-				}
-
-				String returnProxy = "PROXY";
-				String ruleReg = "";
-
-				if (line.startsWith("@@")) {
-					line = line.substring(2);
-					returnProxy = "DEFAULT";
-				}
-
-				if (line.startsWith("||")) {
-					ruleReg = "/^[\\w\\-]+:\\/+(?!\\/)(?:[^\\/]+\\.)?"
-							+ regEncode(line.substring(2)) + "/";
-				} else if (line.startsWith("|")) {
-					ruleReg = "/^" + regEncode(line.substring(1)) + "/";
-				} else if (line.startsWith("/") && line.endsWith("/")) {
-					ruleReg = line;
-				} else {
-					ruleReg = "/" + regEncode(line) + "/";
-				}
-				pacContent.append("\t").append("if(").append(ruleReg).append(
-						"i.test(url)) return ").append(returnProxy).append(
-						";\n");
+				pacContent.append(convertRule(line));
 			}
 			pacContent.append("\t").append("return DEFAULT;").append("\n");
 			pacContent.append("}\n");
@@ -249,6 +246,42 @@ class PacServerThread extends Thread {
 		}
 
 		return pacContent.toString();
+	}
+
+	private String convertRule(String ruleLine) {
+		log.debug(ruleLine);
+		if (ruleLine.isEmpty()) {
+			return "";
+		}
+
+		if (ruleLine.startsWith("[") || ruleLine.startsWith("!")) {
+			return "";
+		}
+
+		String returnProxy = "PROXY";
+		String ruleReg = "";
+
+		if (ruleLine.startsWith("@@")) {
+			ruleLine = ruleLine.substring(2);
+			returnProxy = "DEFAULT";
+		}
+
+		if (ruleLine.startsWith("||")) {
+			ruleReg = "/^[\\w\\-]+:\\/+(?!\\/)(?:[^\\/]+\\.)?"
+					+ regEncode(ruleLine.substring(2)) + "/";
+		} else if (ruleLine.startsWith("|")) {
+			ruleReg = "/^" + regEncode(ruleLine.substring(1)) + "/";
+		} else if (ruleLine.startsWith("/") && ruleLine.endsWith("/")) {
+			ruleReg = ruleLine;
+		} else {
+			ruleReg = "/" + regEncode(ruleLine) + "/";
+		}
+
+		StringBuilder pacLine = new StringBuilder();
+		pacLine.append("\t").append("if(").append(ruleReg).append(
+				"i.test(url)) return ").append(returnProxy).append(";\n");
+		return pacLine.toString();
+
 	}
 
 	private String regEncode(String str) {

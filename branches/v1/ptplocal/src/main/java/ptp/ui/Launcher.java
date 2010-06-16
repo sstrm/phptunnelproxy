@@ -6,6 +6,8 @@ import java.util.Properties;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 
+import ptp.Config;
+
 public abstract class Launcher {
 	private static Logger log = Logger.getLogger(Launcher.class);
 
@@ -18,9 +20,9 @@ public abstract class Launcher {
 			PropertyConfigurator.configure(Launcher.class
 					.getResource("/etc/log4j.properties"));
 		}
-	}
 
-	public static void logSysProps() {
+		log.info(Config.getIns().getUserAgent() + " starts!");
+
 		Properties sysProps = System.getProperties();
 		log.info("java.runtime.version: "
 				+ sysProps.getProperty("java.runtime.version"));
