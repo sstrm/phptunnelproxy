@@ -15,13 +15,6 @@
 	<property name="etc.dir" value="${basedir}/etc" />
 	<property name="shell.dir" value="${basedir}/shell" />
 
-	<path id="build.classpath">
-		<fileset file="${lib.dir}/*.jar">
-			<exclude name="*sources*" />
-		</fileset>
-		<pathelement path="${bin.dir}" />
-	</path>
-
 	<path id="ant-task.classpath">
 		<fileset file="${lib.dir}/ant-task/*.jar">
 			<exclude name="*sources*" />
@@ -31,10 +24,25 @@
 	<taskdef name="eclipse" classname="com.xmxsuperstar.ant.task.EclipseProjectTask">
 		<classpath refid="ant-task.classpath" />
 	</taskdef>
-	
-	<taskdef resource="net/sf/antcontrib/antlib.xml" >
+
+	<taskdef resource="net/sf/antcontrib/antlib.xml">
 		<classpath refid="ant-task.classpath" />
 	</taskdef>
+
+	<condition property="os.lib" value="win" else="nix">
+		<os family="windows" />
+	</condition>
+
+
+	<path id="build.classpath">
+		<fileset file="${lib.dir}/*.jar">
+			<exclude name="*sources*" />
+		</fileset>
+		<fileset file="${lib.dir}/${os.lib}/*.jar">
+			<exclude name="*sources*" />
+		</fileset>
+		<pathelement path="${bin.dir}" />
+	</path>
 
 	<target name="clean">
 		<delete dir="${bin.dir}" />
@@ -43,15 +51,15 @@
 	</target>
 
 	<target name="pre-compile">
-		<exec executable="svnversion" failifexecutionfails="no" outputproperty="_app.svn.version"> 
-			<arg value="${basedir}"/>  
-			<arg value="-n"/> 
+		<exec executable="svnversion" failifexecutionfails="no" outputproperty="_app.svn.version">
+			<arg value="${basedir}" />
+			<arg value="-n" />
 		</exec>
-		<propertyregex property="app.svn.version" input="${_app.svn.version}" regexp="(\d*:){0,1}(\d+)M?S?P?" select="\2"/>
-		<property name="build.version" value="${app.version}.${app.svn.version}"/>
-		<propertyfile file="${conf.main.dir}/etc/app.properties" >
-			<entry  key="build.version" value="${build.version}"/>
-			<entry  key="app.compile.time" type="date" value="now" pattern="yyyy-MM-dd HH:mm"/>
+		<propertyregex property="app.svn.version" input="${_app.svn.version}" regexp="(\d*:){0,1}(\d+)M?S?P?" select="\2" />
+		<property name="build.version" value="${app.version}.${app.svn.version}" />
+		<propertyfile file="${conf.main.dir}/etc/app.properties">
+			<entry key="build.version" value="${build.version}" />
+			<entry key="app.compile.time" type="date" value="now" pattern="yyyy-MM-dd HH:mm" />
 		</propertyfile>
 
 	</target>
@@ -102,7 +110,7 @@
 				<exclude name="**/etc/app.properties" />
 			</tarfileset>
 		</tar>
-		<bzip2 src="${dist.dir}/${app.name}-${build.version}-src.tar" destfile="${dist.dir}/${app.name}-${build.version}-src.tar.bz2"/>
+		<bzip2 src="${dist.dir}/${app.name}-${build.version}-src.tar" destfile="${dist.dir}/${app.name}-${build.version}-src.tar.bz2" />
 		<delete file="${dist.dir}/${app.name}-${build.version}-src.tar" />
 	</target>
 
@@ -123,7 +131,7 @@
 			<tarfileset prefix="${app.name}" file="${basedir}/LICENSE.txt" />
 			<tarfileset prefix="${app.name}" file="${basedir}/README.txt" />
 		</tar>
-		<bzip2 src="${dist.dir}/${app.name}-${build.version}-bin.tar" destfile="${dist.dir}/${app.name}-${build.version}-bin.tar.bz2"/>
+		<bzip2 src="${dist.dir}/${app.name}-${build.version}-bin.tar" destfile="${dist.dir}/${app.name}-${build.version}-bin.tar.bz2" />
 		<delete file="${dist.dir}/${app.name}-${build.version}-bin.tar" />
 	</target>
 
