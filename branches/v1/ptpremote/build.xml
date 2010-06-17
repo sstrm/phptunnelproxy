@@ -35,9 +35,10 @@
 		<mkdir dir="${dist.dir}" />
 		<tar destfile="${dist.dir}/${app.name}-${build.version}.tar">
 			<tarfileset prefix="${app.name}" dir="${src.dir}" filemode="755" />
+			<tarfileset prefix="${app.name}" file="${basedir}/LICENSE.txt" />
 		</tar>
-		<bzip2 src="${dist.dir}/${app.name}-${build.version}-bin.tar" destfile="${dist.dir}/${app.name}-${build.version}-bin.tar.bz2"/>
-		<delete file="${dist.dir}/${app.name}-${build.version}-bin.tar" />
+		<bzip2 src="${dist.dir}/${app.name}-${build.version}.tar" destfile="${dist.dir}/${app.name}-${build.version}.tar.bz2"/>
+		<delete file="${dist.dir}/${app.name}-${build.version}.tar" />
 	</target>
 
 </project>
