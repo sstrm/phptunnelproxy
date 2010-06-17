@@ -13,11 +13,11 @@ cd %PTP_HOME%
 if exist "%PTP_HOME%\jre" set JAVA_HOME=%PTP_HOME%\jre
 if "%JAVA_HOME%" == "" goto NOJAVAHOME
 if exist "%JAVA_HOME%\..\jre6" set JAVA_HOME=%JAVA_HOME%\..\jre6
-start "PTP Local" "%JAVA_HOME%\bin\javaw.exe" -cp %PTP_JAR% ptp.ui.GUILauncher %*
+start "PTP Local" "%JAVA_HOME%\bin\javaw.exe" -cp %PTP_JAR% ptp.ui.SwingLauncher %*
 goto END
 
 :NOJAVAHOME
-start "PTP Local" javaw.exe -cp %PTP_JAR% ptp.ui.GUILauncher %*
+start "PTP Local" javaw.exe -cp %PTP_JAR% ptp.ui.SwingLauncher %*
 goto END
 
 :ENVSET
