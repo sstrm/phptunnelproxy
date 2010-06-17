@@ -26,4 +26,4 @@ for jar in `ls $PTP_HOME/lib/*.jar`
 do
       PTP_JAR="$PTP_JAR:""$jar"
 done 
-java -cp $PTP_JAR ptp.ui.GUILauncher %* &
+java -cp $PTP_JAR ptp.ui.SwingLauncher %* &

@@ -27,39 +27,13 @@ import javax.swing.UIManager;
 import org.apache.log4j.Logger;
 
 import ptp.Config;
-import ptp.net.LocalProxyServer;
-import ptp.net.pac.PacServer;
 
-public class GUILauncher extends Launcher {
-	private static Logger log = Logger.getLogger(GUILauncher.class);
+public class SwingLauncher extends Launcher {
+	private static Logger log = Logger.getLogger(SwingLauncher.class);
 
-	private static LocalProxyServer localProxyServer;
-	private static PacServer pacServer;
-
-	/**
-	 * @param args
-	 */
 	public static void main(String[] args) {
 		createUI();
 		promot();
-	}
-
-	public static void startServer() {
-		pacServer = new PacServer();
-		pacServer.startService();
-
-		localProxyServer = new LocalProxyServer();
-		localProxyServer.startService();
-	}
-
-	public static void stopServer() {
-		if (localProxyServer != null) {
-			localProxyServer.stopService();
-		}
-
-		if (pacServer != null) {
-			pacServer.stopService();
-		}
 	}
 
 	public static void createUI() {
