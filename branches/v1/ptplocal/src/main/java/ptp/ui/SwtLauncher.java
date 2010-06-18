@@ -1,6 +1,8 @@
 package ptp.ui;
 
+import org.apache.log4j.Logger;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.ImageData;
 import org.eclipse.swt.widgets.Display;
@@ -13,8 +15,12 @@ import org.eclipse.swt.widgets.Tray;
 import org.eclipse.swt.widgets.TrayItem;
 
 public class SwtLauncher extends Launcher {
-
 	public static void main(String[] args) {
+		createUI();
+		//promot();
+	}
+
+	public static void createUI() {
 		Display display = new Display();
 
 		final Shell shell = new Shell(display);
@@ -115,11 +121,20 @@ public class SwtLauncher extends Launcher {
 			item.setVisible(true);
 
 		}
-
-		shell.setBounds(0, 0, 0, 0);
-
+		
+		StyledText logText = new StyledText(shell, SWT.MULTI|SWT.H_SCROLL|SWT.V_SCROLL);
+		logText.setEditable(false);
+		SwtTextAppender guiAppender = (SwtTextAppender) Logger
+				.getRootLogger().getAppender("gui");
+		if (guiAppender != null) {
+			guiAppender.setTextWidget(logText);
+		}
+		logText.setBounds(0, 0, 380, 250);
+		
+		shell.setBounds(0, 0, 400, 300);
+		
 		shell.open();
-		shell.setVisible(false);
+		shell.setVisible(true);
 
 		while (!shell.isDisposed()) {
 
@@ -132,6 +147,8 @@ public class SwtLauncher extends Launcher {
 		image.dispose();
 
 		display.dispose();
+		
+		stopServer();
 
 	}
 
