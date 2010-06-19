@@ -3,8 +3,6 @@ package ptp.net.ssl;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
 import java.security.KeyStore;
 
 import javax.net.ssl.SSLContext;
@@ -16,14 +14,17 @@ import javax.net.ssl.X509KeyManager;
 import org.apache.log4j.Logger;
 
 import ptp.Config;
+import ptp.net.AbstractServer;
 import ptp.net.ProxyException;
 import ptp.net.mp.MethodProcesser;
 
-public class SSLForwardServer {
+public class SSLForwardServer extends AbstractServer {
 	private static Logger log = Logger.getLogger(SSLForwardServer.class);
 
 	private String destHost;
 	private int destPort;
+
+	private Thread sslForwardServerProcessThread;
 
 	public SSLForwardServer(String destHost, int destPort) {
 		this.destHost = destHost;
@@ -58,7 +59,7 @@ public class SSLForwardServer {
 			sslServerSocket.setSoTimeout(10000);
 			log.info("local ssl server started on port: " + localSslPort);
 
-			Thread sslForwardServerProcessThread = new Thread(
+			sslForwardServerProcessThread = new Thread(
 					new SSLForwardServerProcessThread(sslServerSocket,
 							destHost, destPort));
 			sslForwardServerProcessThread.start();
@@ -68,6 +69,17 @@ public class SSLForwardServer {
 		}
 		return localSslPort;
 	}
+
+	@Override
+	public boolean isServerOn() {
+		return sslForwardServerProcessThread.isAlive();
+	}
+
+	@Override
+	public void stopService() {
+		// no need
+	}
+
 }
 
 class SSLForwardServerProcessThread implements Runnable {
@@ -100,7 +112,7 @@ class SSLForwardServerProcessThread implements Runnable {
 				mp = MethodProcesser.getSSLIns(in, out, destHost, destPort);
 				mp.process();
 			} catch (ProxyException e) {
-				writeErrorResponse(out, e);
+				AbstractServer.writeErrorResponse(out, e, this.getClass());
 			}
 
 			in.close();
@@ -112,25 +124,6 @@ class SSLForwardServerProcessThread implements Runnable {
 			log.error(e.getMessage(), e);
 		}
 
-	}
-
-	private void writeErrorResponse(OutputStream outToBrowser,
-			ProxyException proxyException) {
-		log.error("wirite error page for: " + proxyException.getMessage());
-		PrintWriter w = new PrintWriter(new OutputStreamWriter(outToBrowser));
-		w.write("HTTP/1.1 500 Internal Server Error\r\n");
-		w.write("Content-Type: text/html; charset=utf-8\r\n");
-		w.write("Connection: close\r\n");
-		w.write("\r\n");
-
-		w.write("<html>");
-		w.write("<head><title>HTTP 500 Internal Server Error</title><head>");
-		w.write("<body><pre>");
-		proxyException.printStackTrace(w);
-		w.write("</pre></body>");
-		w.write("</html>");
-		w.flush();
-		w.close();
 	}
 
 }

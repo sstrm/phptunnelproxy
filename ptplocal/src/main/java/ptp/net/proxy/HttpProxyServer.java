@@ -1,10 +1,8 @@
-package ptp.net;
+package ptp.net.proxy;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
@@ -13,45 +11,53 @@ import java.net.SocketTimeoutException;
 import org.apache.log4j.Logger;
 
 import ptp.Config;
+import ptp.net.AbstractServer;
+import ptp.net.ProxyException;
 import ptp.net.mp.MethodProcesser;
 
-public class LocalProxyServer {
-	private static Logger log = Logger.getLogger(LocalProxyServer.class);
-	
-	LocalProxyServerThread localProxyServerThread = null;
-	public LocalProxyServer() {
-		localProxyServerThread = new LocalProxyServerThread();
+public class HttpProxyServer extends AbstractServer {
+	private static Logger log = Logger.getLogger(HttpProxyServer.class);
+
+	HttpProxyServerThread httpProxyServerThread = null;
+
+	public HttpProxyServer() {
+		httpProxyServerThread = new HttpProxyServerThread();
 	}
-	
-	public void startService() {
-		localProxyServerThread.start();
+
+	public int startService() {
+		httpProxyServerThread.start();
+		return httpProxyServerThread.httpProxyPort;
 	}
 
 	public void stopService() {
-		localProxyServerThread.shutdown();
+		httpProxyServerThread.shutdown();
 		try {
-			localProxyServerThread.join();
+			httpProxyServerThread.join();
 		} catch (InterruptedException e) {
 			log.error(e.getMessage(), e);
 		}
 	}
+
+	public boolean isServerOn() {
+		return httpProxyServerThread.isAlive();
+	}
 }
 
-class LocalProxyServerThread extends Thread{
+class HttpProxyServerThread extends Thread {
 
-	private static Logger log = Logger.getLogger(LocalProxyServer.class);
+	private static Logger log = Logger.getLogger(HttpProxyServer.class);
 
-	int localProxyPort;
-	int localProxyTimeOut;
+	int httpProxyPort;
+	int httpProxyTimeOut;
 
 	boolean isStopped = false;
 
 	ServerSocket localProxyServerSocket;
 
-	public LocalProxyServerThread() {
-		localProxyPort = Integer.parseInt(Config.getIns().getValue(
+	public HttpProxyServerThread() {
+		httpProxyPort = Integer.parseInt(Config.getIns().getValue(
 				"ptp.local.proxy.port", "8887"));
-		localProxyTimeOut = 1000;
+		httpProxyTimeOut = 1000;
 	}
 
 	public void shutdown() {
@@ -60,12 +66,12 @@ class LocalProxyServerThread extends Thread{
 
 	public void run() {
 		try {
-			localProxyServerSocket = new ServerSocket(localProxyPort);
+			localProxyServerSocket = new ServerSocket(httpProxyPort);
 		} catch (IOException e) {
 			log.error("create local proxy server socket failed", e);
 			return;
 		}
-		log.info("local proxy server started on port: " + localProxyPort);
+		log.info("local proxy server started on port: " + httpProxyPort);
 
 		try {
 			localProxyServerSocket.setSoTimeout(1000);
@@ -88,7 +94,7 @@ class LocalProxyServerThread extends Thread{
 						+ browserSocket.getInetAddress().getHostAddress() + " "
 						+ browserSocket.getPort());
 				Thread localProxyProcessThread = new Thread(
-						new LocalProxyProcessThread(browserSocket));
+						new HttpProxyProcessThread(browserSocket));
 				localProxyProcessThread.start();
 				log.info("current thread count: " + Thread.activeCount());
 			}
@@ -107,12 +113,12 @@ class LocalProxyServerThread extends Thread{
 
 }
 
-class LocalProxyProcessThread implements Runnable {
-	private static Logger log = Logger.getLogger(LocalProxyProcessThread.class);
+class HttpProxyProcessThread implements Runnable {
+	private static Logger log = Logger.getLogger(HttpProxyProcessThread.class);
 
 	Socket browserSocket;
 
-	public LocalProxyProcessThread(Socket browserSocket) {
+	public HttpProxyProcessThread(Socket browserSocket) {
 		this.browserSocket = browserSocket;
 	}
 
@@ -153,7 +159,7 @@ class LocalProxyProcessThread implements Runnable {
 					mp = MethodProcesser.getIns(inFromBrowser, outToBrowser);
 					mp.process();
 				} catch (ProxyException e) {
-					writeErrorResponse(outToBrowser, e);
+					AbstractServer.writeErrorResponse(outToBrowser, e, this.getClass());
 				}
 
 				processTimes++;
@@ -180,25 +186,6 @@ class LocalProxyProcessThread implements Runnable {
 		}
 		log.info(Thread.currentThread().getName() + " end, it proceed "
 				+ processTimes + " requests from browser");
-	}
-
-	private void writeErrorResponse(OutputStream outToBrowser,
-			ProxyException proxyException) {
-		log.error("wirite error page for: " + proxyException.getMessage(), proxyException);
-		PrintWriter w = new PrintWriter(new OutputStreamWriter(outToBrowser));
-		w.write("HTTP/1.1 500 Internal Server Error\r\n");
-		w.write("Content-Type: text/html; charset=utf-8\r\n");
-		w.write("Connection: close\r\n");
-		w.write("\r\n");
-
-		w.write("<html>");
-		w.write("<head><title>HTTP 500 Internal Server Error</title><head>");
-		w.write("<body><pre>");
-		proxyException.printStackTrace(w);
-		w.write("</pre></body>");
-		w.write("</html>");
-		w.flush();
-		w.close();
 	}
 
 }

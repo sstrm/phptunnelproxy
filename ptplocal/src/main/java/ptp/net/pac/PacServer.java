@@ -17,9 +17,10 @@ import java.net.URLConnection;
 import org.apache.log4j.Logger;
 
 import ptp.Config;
+import ptp.net.AbstractServer;
 import ptp.util.Base64Coder;
 
-public class PacServer {
+public class PacServer extends AbstractServer {
 	private static Logger log = Logger.getLogger(PacServer.class);
 
 	PacServerThread pacServerThread = null;
@@ -28,8 +29,9 @@ public class PacServer {
 		pacServerThread = new PacServerThread();
 	}
 
-	public void startService() {
+	public int startService() {
 		pacServerThread.start();
+		return pacServerThread.pacPort;
 	}
 
 	public void stopService() {
@@ -41,10 +43,17 @@ public class PacServer {
 		}
 	}
 
+	@Override
+	public boolean isServerOn() {
+		return pacServerThread.isAlive();
+	}
+
 }
 
 class PacServerThread extends Thread {
 	private static Logger log = Logger.getLogger(PacServerThread.class);
+
+	int pacPort;
 
 	private boolean isStopped = false;
 
@@ -56,7 +65,7 @@ class PacServerThread extends Thread {
 	public void run() {
 		ServerSocket sSocket = null;
 		try {
-			int pacPort = Integer.parseInt(Config.getIns().getValue(
+			pacPort = Integer.parseInt(Config.getIns().getValue(
 					"ptp.local.pac.port", "8888"));
 			sSocket = new ServerSocket(pacPort);
 			sSocket.setSoTimeout(1000);
