@@ -45,10 +45,14 @@ public class SwingLauncher extends Launcher {
 
 		JComponent.setDefaultLocale(new Locale(""));
 
+		final ImageIcon logoOnImgIcon = new ImageIcon(JXTrayIcon.class
+				.getResource("/res/logo-tray-on.png"));
+		final ImageIcon logoOffImgIcon = new ImageIcon(JXTrayIcon.class
+				.getResource("/res/logo-tray-off.png"));
 		final ImageIcon onImgIcon = new ImageIcon(JXTrayIcon.class
-				.getResource("/res/tray-on.png"));
+				.getResource("/res/on.png"));
 		final ImageIcon offImgIcon = new ImageIcon(JXTrayIcon.class
-				.getResource("/res/tray-off.png"));
+				.getResource("/res/off.png"));
 		final ImageIcon logImgIcon = new ImageIcon(JXTrayIcon.class
 				.getResource("/res/log.png"));
 		final ImageIcon infoImgIcon = new ImageIcon(JXTrayIcon.class
@@ -78,7 +82,7 @@ public class SwingLauncher extends Launcher {
 			guiAppender.setTextArea(logMessageTextArea);
 		}
 
-		final JXTrayIcon tray = new JXTrayIcon(offImgIcon.getImage());
+		final JXTrayIcon tray = new JXTrayIcon(logoOffImgIcon.getImage());
 
 		// create pop up menu
 		final JPopupMenu popupMenu = new JPopupMenu();
@@ -92,12 +96,12 @@ public class SwingLauncher extends Launcher {
 					startServer();
 					switchItem.setText("Stop");
 					switchItem.setIcon(offImgIcon);
-					tray.setImage(onImgIcon.getImage());
+					tray.setImage(logoOnImgIcon.getImage());
 				} else if (switchItem.getText().equals("Stop")) {
 					stopServer();
 					switchItem.setText("Start");
 					switchItem.setIcon(onImgIcon);
-					tray.setImage(offImgIcon.getImage());
+					tray.setImage(logoOffImgIcon.getImage());
 				}
 			}
 		};
