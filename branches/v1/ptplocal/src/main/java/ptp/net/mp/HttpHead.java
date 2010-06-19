@@ -14,6 +14,7 @@ import org.apache.log4j.Logger;
 import ptp.Config;
 import ptp.net.ProxyException;
 import ptp.util.ByteArrayUtil;
+import ptp.util.DumpUtil;
 
 public class HttpHead {
 	private static Logger log = Logger.getLogger(HttpHead.class);
@@ -98,7 +99,7 @@ public class HttpHead {
 			try {
 				buff[index++] = b;
 			} catch (ArrayIndexOutOfBoundsException e) {
-				log.debug(ByteArrayUtil.toString(buff, 0, index - 1), e);
+				log.debug(DumpUtil.dump(buff, 0, index - 1), e);
 				log.error(e.getMessage(), e);
 				throw new ProxyException(e);
 			}
