@@ -10,15 +10,15 @@ import javax.net.ssl.*;
 
 public class HttpsEchoer {
 	public static void main(String[] args) {
-		String ksName = "etc/ptp.jks";
+		String ksName = "/etc/ptp.jks";
 		char ksPass[] = "phptunnelproxykspass".toCharArray();
 		char ctPass[] = "phptunnelproxyctpass".toCharArray();
 		try {
 			KeyStore ks = KeyStore.getInstance("JKS");
-			ks.load(new FileInputStream(ksName), ksPass);
+			ks.load(HttpsEchoer.class.getResourceAsStream(ksName), ksPass);
 			KeyManagerFactory kmf = KeyManagerFactory.getInstance("SunX509");
 			kmf.init(ks, ctPass);
-			SSLContext sc = SSLContext.getInstance("SSLv3");
+			SSLContext sc = SSLContext.getInstance("TLS");
 			sc.init(kmf.getKeyManagers(), null, null);
 			SSLServerSocketFactory ssf = sc.getServerSocketFactory();
 			SSLServerSocket s = (SSLServerSocket) ssf.createServerSocket(443);
