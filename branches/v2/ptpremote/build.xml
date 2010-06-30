@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="ptpremote" default="dist" basedir=".">
+	<property file="build.properties" />
+	<property name="app.name" value="${ant.project.name}" />
+	<property name="app.version" value="0.0" />
+	<property name="dist.dir" value="${basedir}/dist" />
+	<property name="src.dir" value="${basedir}/src" />
+	<property name="lib.dir" value="${basedir}/lib" />
+	
+	<path id="ant-task.classpath">
+		<fileset file="${lib.dir}/ant-task/*.jar">
+			<exclude name="*sources*" />
+		</fileset>
+	</path>
+	
+	<taskdef resource="net/sf/antcontrib/antlib.xml" >
+		<classpath refid="ant-task.classpath" />
+	</taskdef>
+
+	<target name="clean">
+		<delete dir="${dist.dir}" />
+	</target>
+	
+	<target name="pre">
+		<exec executable="svnversion" failifexecutionfails="no" outputproperty="_app.svn.version"> 
+			<arg value="${basedir}"/>  
+			<arg value="-n"/> 
+		</exec>
+		<propertyregex property="app.svn.version" input="${_app.svn.version}" regexp="(\d*:){0,1}(\d+)M?S?P?" select="\2"/>
+		<property name="build.version" value="${app.version}.${app.svn.version}"/>
+
+	</target>
+
+	<target name="dist" depends="pre" description="build a package for distribution">
+		<mkdir dir="${dist.dir}" />
+		<tar destfile="${dist.dir}/${app.name}-${build.version}.tar">
+			<tarfileset prefix="${app.name}" dir="${src.dir}" filemode="755" />
+			<tarfileset prefix="${app.name}" file="${basedir}/LICENSE.txt" />
+		</tar>
+		<bzip2 src="${dist.dir}/${app.name}-${build.version}.tar" destfile="${dist.dir}/${app.name}-${build.version}.tar.bz2"/>
+		<delete file="${dist.dir}/${app.name}-${build.version}.tar" />
+	</target>
+
+</project>
