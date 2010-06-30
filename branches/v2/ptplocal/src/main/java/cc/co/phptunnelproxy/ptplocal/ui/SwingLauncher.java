@@ -141,7 +141,7 @@ public class SwingLauncher extends Launcher {
 						BoxLayout.Y_AXIS));
 				JLabel versionLabel = new JLabel("PHP Tunnel Proxy Local "
 						+ Config.getIns().getVersion() + " "
-						+ Config.getIns().getCompileDate());
+						+ Config.getIns().getBuildTimestamp());
 				JLabel linkLabel = new JLabel(
 						"<html>"
 								+ "<a href=\"http://code.google.com/p/phptunnelproxy/\">"

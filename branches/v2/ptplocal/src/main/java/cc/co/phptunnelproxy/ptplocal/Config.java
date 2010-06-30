@@ -86,12 +86,12 @@ public class Config {
 		return appProp.getProperty("build.version", "0.0.0");
 	}
 
-	public String getCompileDate() {
-		return appProp.getProperty("app.compile.time", "2012-12-21 00:00");
+	public String getBuildTimestamp() {
+		return appProp.getProperty("build.timestamp", "2012-12-21 00:00");
 	}
 
 	public String getUserAgent() {
-		return "PHPTunnelProxy Local/" + getVersion() + " (" + getCompileDate()
+		return "PHPTunnelProxy Local/" + getVersion() + " (" + getBuildTimestamp()
 				+ ")";
 	}
 
