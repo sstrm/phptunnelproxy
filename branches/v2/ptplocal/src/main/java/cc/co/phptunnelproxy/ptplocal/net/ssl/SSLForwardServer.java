@@ -15,6 +15,7 @@ import org.apache.log4j.Logger;
 
 import cc.co.phptunnelproxy.ptplocal.Config;
 import cc.co.phptunnelproxy.ptplocal.net.AbstractServer;
+import cc.co.phptunnelproxy.ptplocal.net.AbstractServerProcessThread;
 import cc.co.phptunnelproxy.ptplocal.net.ProxyException;
 import cc.co.phptunnelproxy.ptplocal.net.mp.MethodProcesser;
 
@@ -82,7 +83,7 @@ public class SSLForwardServer extends AbstractServer {
 
 }
 
-class SSLForwardServerProcessThread implements Runnable {
+class SSLForwardServerProcessThread extends AbstractServerProcessThread {
 	private static Logger log = Logger
 			.getLogger(SSLForwardServerProcessThread.class);
 
@@ -112,7 +113,7 @@ class SSLForwardServerProcessThread implements Runnable {
 				mp = MethodProcesser.getSSLIns(in, out, destHost, destPort);
 				mp.process();
 			} catch (ProxyException e) {
-				AbstractServer.writeErrorResponse(out, e, this.getClass());
+				writeErrorResponse(out, e, this.getClass());
 			}
 
 			in.close();

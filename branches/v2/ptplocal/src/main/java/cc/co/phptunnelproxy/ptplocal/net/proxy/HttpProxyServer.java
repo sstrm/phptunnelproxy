@@ -12,6 +12,7 @@ import org.apache.log4j.Logger;
 
 import cc.co.phptunnelproxy.ptplocal.Config;
 import cc.co.phptunnelproxy.ptplocal.net.AbstractServer;
+import cc.co.phptunnelproxy.ptplocal.net.AbstractServerProcessThread;
 import cc.co.phptunnelproxy.ptplocal.net.ProxyException;
 import cc.co.phptunnelproxy.ptplocal.net.mp.MethodProcesser;
 
@@ -107,13 +108,9 @@ class HttpProxyServerThread extends Thread {
 		log.info("stop local proxy server");
 	}
 
-	public void stopService() {
-		isStopped = true;
-	}
-
 }
 
-class HttpProxyProcessThread implements Runnable {
+class HttpProxyProcessThread extends AbstractServerProcessThread {
 	private static Logger log = Logger.getLogger(HttpProxyProcessThread.class);
 
 	Socket browserSocket;
@@ -159,7 +156,7 @@ class HttpProxyProcessThread implements Runnable {
 					mp = MethodProcesser.getIns(inFromBrowser, outToBrowser);
 					mp.process();
 				} catch (ProxyException e) {
-					AbstractServer.writeErrorResponse(outToBrowser, e, this.getClass());
+					writeErrorResponse(outToBrowser, e, this.getClass());
 				}
 
 				processTimes++;
