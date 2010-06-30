@@ -1,5 +1,6 @@
 package cc.co.phptunnelproxy.ptplocal.net.ssl;
 
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -34,14 +35,14 @@ public class SSLForwardServer extends AbstractServer {
 
 	public int startService() {
 
-		String ksName = "/etc/ptp.jks";
+		String ksName = "etc/ptp.jks";
 		char ksPass[] = "phptunnelproxykspass".toCharArray();
 		char ctPass[] = "phptunnelproxyctpass".toCharArray();
 		int localSslPort = Integer.parseInt(Config.getIns().getValue(
 				"ptp.local.ssl.port", "8889"));
 		try {
 			KeyStore ks = KeyStore.getInstance("JKS");
-			ks.load(SSLForwardServer.class.getResourceAsStream(ksName), ksPass);
+			ks.load(new FileInputStream(ksName), ksPass);
 			SSLContext sc = SSLContext.getInstance("SSLv3");
 			sc.init(new X509KeyManager[] { new AliasKeyManager(ks, ctPass,
 					this.destHost) }, null, null);
