@@ -13,7 +13,8 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<build.timestamp>${maven.build.timestamp}</build.timestamp>
-		<maven.build.timestamp.format>yyyy-MM-dd HH:mm</maven.build.timestamp.format>
+		<maven.build.timestamp.format>yyyy-MM-dd HH:mm
+		</maven.build.timestamp.format>
 	</properties>
 
 	<dependencies>
@@ -37,8 +38,29 @@
 			<resource>
 				<directory>src/main/resources</directory>
 				<filtering>true</filtering>
+				<includes>
+					<include>**/*.properties</include>
+				</includes>
+			</resource>
+			<resource>
+				<directory>src/main/resources</directory>
+				<filtering>false</filtering>
 			</resource>
 		</resources>
+
+		<testResources>
+			<testResource>
+				<directory>src/test/resources</directory>
+				<filtering>true</filtering>
+				<includes>
+					<include>**/*.properties</include>
+				</includes>
+			</testResource>
+			<testResource>
+				<directory>src/test/resources</directory>
+				<filtering>false</filtering>
+			</testResource>
+		</testResources>
 
 		<plugins>
 			<plugin>
@@ -52,7 +74,7 @@
 
 			<plugin>
 				<artifactId>maven-assembly-plugin </artifactId>
-				<configuration>			
+				<configuration>
 					<descriptors>
 						<descriptor>src/main/assemble/package.xml</descriptor>
 					</descriptors>
