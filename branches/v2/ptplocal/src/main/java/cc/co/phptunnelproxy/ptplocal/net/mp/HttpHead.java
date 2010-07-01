@@ -24,7 +24,7 @@ public class HttpHead {
 	private static final Pattern reqLinePattern = Pattern
 			.compile("^(\\w+)\\s(.+)\\s([\\w|\\d|/|\\.]+)$");
 	private static final Pattern reqResourcePattern = Pattern
-			.compile("\\shttp://[\\w|\\.|:|\\d]+(/.*)\\s");
+			.compile("\\shttp://.+?(/.*)\\s");
 	private static final Pattern resLinePattern = Pattern
 			.compile("^([\\w|/|\\.]+)\\s(\\d+)\\s\\w*$");
 
