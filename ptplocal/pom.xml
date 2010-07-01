@@ -52,9 +52,7 @@
 
 			<plugin>
 				<artifactId>maven-assembly-plugin </artifactId>
-				<configuration>
-					<!-- not append assembly id in release file name -->
-					<appendAssemblyId>false</appendAssemblyId>
+				<configuration>			
 					<descriptors>
 						<descriptor>src/main/assemble/package.xml</descriptor>
 					</descriptors>
