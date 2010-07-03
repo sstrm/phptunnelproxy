@@ -169,7 +169,6 @@ class PacServerThread extends Thread {
 					"ptp.local.pac.gfwlist",
 					"http://autoproxy-gfwlist.googlecode.com"
 							+ "/svn/trunk/gfwlist.txt"));
-			log.debug(Config.getIns().getValue("ptp.local.pac.gfwlist"));
 			log.info("gfwlist: " + gfwlistUrl.toString());
 			URLConnection gfwlistConn = gfwlistUrl.openConnection(Config
 					.getIns().getProxy());
@@ -180,12 +179,10 @@ class PacServerThread extends Thread {
 		} catch (IOException e1) {
 			log.error(e1.getMessage(), e1);
 			URL gfwlistUrl = PacServer.class.getResource("/etc/gfwlist.txt");
-			log.debug(Config.getIns().getValue("ptp.local.pac.gfwlist"));
 			log.info("gfwlist: " + gfwlistUrl.toString());
 			URLConnection gfwlistConn;
 			try {
-				gfwlistConn = gfwlistUrl.openConnection(Config.getIns()
-						.getProxy());
+				gfwlistConn = gfwlistUrl.openConnection();
 				gfwlistR = new BufferedReader(new InputStreamReader(gfwlistConn
 						.getInputStream()));
 			} catch (IOException e) {

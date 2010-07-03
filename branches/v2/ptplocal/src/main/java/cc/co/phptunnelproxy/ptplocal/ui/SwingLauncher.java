@@ -197,6 +197,11 @@ public class SwingLauncher extends Launcher {
 		} catch (AWTException e) {
 			log.error(e.getMessage(), e);
 		}
+		
+		startServer();
+		switchItem.setText("Stop");
+		switchItem.setIcon(offImgIcon);
+		tray.setImage(logoOnImgIcon.getImage());
 	}
 
 }
