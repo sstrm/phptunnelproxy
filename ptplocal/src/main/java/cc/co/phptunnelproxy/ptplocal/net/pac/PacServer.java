@@ -1,13 +1,13 @@
 package cc.co.phptunnelproxy.ptplocal.net.pac;
 
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
+import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
@@ -18,7 +18,11 @@ import org.apache.log4j.Logger;
 
 import cc.co.phptunnelproxy.ptplocal.Config;
 import cc.co.phptunnelproxy.ptplocal.net.AbstractServer;
+import cc.co.phptunnelproxy.ptplocal.net.AbstractServerProcessThread;
+import cc.co.phptunnelproxy.ptplocal.net.ProxyException;
+import cc.co.phptunnelproxy.ptplocal.net.mp.HttpHead;
 import cc.co.phptunnelproxy.ptplocal.util.Base64Coder;
+import cc.co.phptunnelproxy.ptplocal.util.ByteArrayUtil;
 
 public class PacServer extends AbstractServer {
 	private static Logger log = Logger.getLogger(PacServer.class);
@@ -50,7 +54,7 @@ public class PacServer extends AbstractServer {
 
 }
 
-class PacServerThread extends Thread {
+class PacServerThread extends AbstractServerProcessThread {
 	private static Logger log = Logger.getLogger(PacServerThread.class);
 
 	int pacPort;
@@ -76,78 +80,80 @@ class PacServerThread extends Thread {
 				try {
 					browserSocket = sSocket.accept();
 
-					log.info("visit from browser: "
+					log.info("pac visit from browser: "
 							+ browserSocket.getInetAddress().getHostAddress()
 							+ " " + browserSocket.getPort());
 
-					BufferedWriter w = new BufferedWriter(
-							new OutputStreamWriter(browserSocket
-									.getOutputStream()));
-					BufferedReader r = new BufferedReader(
-							new InputStreamReader(browserSocket
-									.getInputStream()));
+					InputStream inFromBrowser = browserSocket.getInputStream();
+					OutputStream outToBrowser = browserSocket.getOutputStream();
 
-					String m = null;
-					String pacRequestPath = null;
-					String pacHostName = null;
-					while ((m = r.readLine()) != null) {
-						if (m.toUpperCase().startsWith("GET")) {
-							pacRequestPath = m.split("\\s")[1];
-						} else if (m.toUpperCase().startsWith("HOST:")) {
-							// Host: 127.0.0.1:8888
-							pacHostName = m.substring(6).split(":")[0];
-						} else if (m.isEmpty()) {
-							break;
-						}
+					HttpHead reqHH = null;
+					HttpHead resHH = null;
+					try {
+						reqHH = new HttpHead(inFromBrowser, (byte) 0);
+						resHH = new HttpHead("HTTP/1.0 200 OK");
+					} catch (ProxyException e) {
+						log.error(e.getMessage(), e);
+						this.writeErrorResponse(outToBrowser, e, this.getClass());
 					}
-					if (m != null) {
-						w.write("HTTP/1.0 200 OK");
-						w.newLine();
 
-						if (pacRequestPath.equalsIgnoreCase("/gfwlist.txt")) {
-							String gfwlist = this.getGFWList();
-							w.write("Content-Length: " + gfwlist.length()
-									+ "\r\n");
-							w.write("Content-Type: text/plain\r\n\r\n");
-							w.write(gfwlist);
-						} else if (pacRequestPath.equalsIgnoreCase("/rule.txt")) {
-							String rule = this.getRule();
-							w
-									.write("Content-Length: " + rule.length()
-											+ "\r\n");
-							w.write("Content-Type: text/plain\r\n\r\n");
-							w.write(this.getRule());
-						} else if (pacRequestPath
-								.equalsIgnoreCase("/gfwlist.pac")) {
-							String pac = this.getPac(pacHostName, Integer
-									.parseInt(Config.getIns().getValue(
-											"ptp.local.proxy.port", "8888")));
-
-							w.write("Content-Length: " + pac.length() + "\r\n");
-							w.write("Content-Type: text/plain\r\n\r\n");
-							w.write(pac);
-						} else {
-							URL pacIndexUrl = PacServer.class
-									.getResource("/etc/pacindex.html");
-							URLConnection pacIndexUrlConn = pacIndexUrl
-									.openConnection();
-
-							w.write("Content-Length: "
-									+ pacIndexUrlConn.getContentLength()
-									+ "\r\n");
-							w.write("Content-Type: text/html\r\n\r\n");
-							BufferedReader pacIndexR = new BufferedReader(
-									new InputStreamReader(pacIndexUrlConn
-											.getInputStream()));
-							while ((m = pacIndexR.readLine()) != null) {
-								w.write(m);
-								w.write("\n");
-							}
-
-						}
-
-						w.flush();
+					String pacRequestPath = reqHH.getDestResource();
+					String pacHostName = reqHH.getHeader("Host");
+					if(pacHostName.contains(":")) {
+						pacHostName = pacHostName.split(":")[0];
 					}
+
+					String resBody = null;
+
+					if (pacRequestPath.equalsIgnoreCase("/gfwlist.txt")) {
+						String gfwlist = this.getGFWList();
+						resHH.setHeader("Content-Length",
+								Integer.toString(gfwlist.length()));
+						resHH.setHeader("Content-Type", "text/plain");
+						resBody = gfwlist;
+					} else if (pacRequestPath.equalsIgnoreCase("/rule.txt")) {
+						String rule = this.getRule();
+						resHH.setHeader("Content-Length",
+								Integer.toString(rule.length()));
+						resHH.setHeader("Content-Type", "text/plain");
+						resBody = rule;
+					} else if (pacRequestPath.equalsIgnoreCase("/gfwlist.pac")) {
+						String pac = this.getPac(
+								pacHostName,
+								Integer.parseInt(Config.getIns().getValue(
+										"ptp.local.proxy.port", "8888")));
+						resHH.setHeader("Content-Length",
+								Integer.toString(pac.length()));
+						resHH.setHeader("Content-Type", "text/plain");
+						resBody = pac;
+					} else {
+						URL pacIndexUrl = PacServer.class
+								.getResource("/etc/pacindex.html");
+						URLConnection pacIndexUrlConn = pacIndexUrl
+								.openConnection();
+
+						resHH.setHeader("Content-Length", Integer
+								.toString(pacIndexUrlConn.getContentLength()));
+						resHH.setHeader("Content-Type", "text/html");
+
+						BufferedReader pacIndexR = new BufferedReader(
+								new InputStreamReader(
+										pacIndexUrlConn.getInputStream()));
+
+						String m = null;
+						StringBuilder sb = new StringBuilder();
+						while ((m = pacIndexR.readLine()) != null) {
+							sb.append(m).append("\n");
+						}
+						resBody = sb.toString();
+
+					}
+
+					outToBrowser.write(resHH.getHeadBytes());
+					outToBrowser.write(ByteArrayUtil
+							.getBytesFromString(resBody));
+					outToBrowser.flush();
+
 				} catch (SocketTimeoutException ste) {
 					continue;
 				}
@@ -174,8 +180,8 @@ class PacServerThread extends Thread {
 					.getIns().getProxy());
 			gfwlistConn.addRequestProperty("User-Agent", Config.getIns()
 					.getUserAgent());
-			gfwlistR = new BufferedReader(new InputStreamReader(gfwlistConn
-					.getInputStream()));
+			gfwlistR = new BufferedReader(new InputStreamReader(
+					gfwlistConn.getInputStream()));
 		} catch (IOException e1) {
 			log.error(e1.getMessage(), e1);
 			URL gfwlistUrl = PacServer.class.getResource("/etc/gfwlist.txt");
@@ -183,8 +189,8 @@ class PacServerThread extends Thread {
 			URLConnection gfwlistConn;
 			try {
 				gfwlistConn = gfwlistUrl.openConnection();
-				gfwlistR = new BufferedReader(new InputStreamReader(gfwlistConn
-						.getInputStream()));
+				gfwlistR = new BufferedReader(new InputStreamReader(
+						gfwlistConn.getInputStream()));
 			} catch (IOException e) {
 				log.error(e.getMessage(), e);
 				return "";
@@ -223,11 +229,12 @@ class PacServerThread extends Thread {
 
 			pacContent.append("function FindProxyForURL(url, host) {").append(
 					"\n");
-			pacContent.append("\t").append(
-					"var PROXY = \"PROXY " + hostName + ":" + port + "\";")
+			pacContent
+					.append("\t")
+					.append("var PROXY = \"PROXY " + hostName + ":" + port
+							+ "\";").append("\n");
+			pacContent.append("\t").append("var DEFAULT = \"DIRECT\";")
 					.append("\n");
-			pacContent.append("\t").append("var DEFAULT = \"DIRECT\";").append(
-					"\n");
 
 			String line = null;
 
@@ -284,8 +291,9 @@ class PacServerThread extends Thread {
 		}
 
 		StringBuilder pacLine = new StringBuilder();
-		pacLine.append("\t").append("if(").append(ruleReg).append(
-				"i.test(url)) return ").append(returnProxy).append(";\n");
+		pacLine.append("\t").append("if(").append(ruleReg)
+				.append("i.test(url)) return ").append(returnProxy)
+				.append(";\n");
 		return pacLine.toString();
 
 	}
