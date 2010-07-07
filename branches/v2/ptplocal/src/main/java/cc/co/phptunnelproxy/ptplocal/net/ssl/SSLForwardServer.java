@@ -43,7 +43,7 @@ public class SSLForwardServer extends AbstractServer {
 		try {
 			KeyStore ks = KeyStore.getInstance("JKS");
 			ks.load(new FileInputStream(ksName), ksPass);
-			SSLContext sc = SSLContext.getInstance("SSLv3");
+			SSLContext sc = SSLContext.getInstance("TLS");
 			sc.init(new X509KeyManager[] { new AliasKeyManager(ks, ctPass,
 					this.destHost) }, null, null);
 			SSLServerSocketFactory ssf = sc.getServerSocketFactory();

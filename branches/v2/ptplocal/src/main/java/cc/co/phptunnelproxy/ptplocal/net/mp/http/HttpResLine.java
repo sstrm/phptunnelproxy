@@ -1,5 +1,6 @@
 package cc.co.phptunnelproxy.ptplocal.net.mp.http;
 
+import java.io.InputStream;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -9,9 +10,8 @@ public class HttpResLine extends HttpStartLine {
 
 	private String httpVersion = null;
 	private int statusCode;
-
-	public HttpResLine(String line) throws HttpParseException {
-		super(line);
+	
+	private void analize() throws HttpParseException {
 		if (!line.startsWith("HTTP")) {
 			throw new HttpParseException("Invalid Http Response Startline: "
 					+ line);
@@ -22,6 +22,16 @@ public class HttpResLine extends HttpStartLine {
 				statusCode = Integer.parseInt(m.group(2));
 			}
 		}
+	}
+
+	public HttpResLine(String line) throws HttpParseException {
+		super(line);
+		analize();
+	}
+
+	public HttpResLine(InputStream inFromPhp) throws HttpParseException {
+		super(inFromPhp);
+		analize();
 	}
 
 	public String getHttpVersion() {

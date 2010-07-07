@@ -10,6 +10,8 @@ import org.apache.log4j.Logger;
 import cc.co.phptunnelproxy.ptplocal.Config;
 import cc.co.phptunnelproxy.ptplocal.net.ProxyException;
 import cc.co.phptunnelproxy.ptplocal.net.mp.http.HttpHead;
+import cc.co.phptunnelproxy.ptplocal.net.mp.http.HttpParseException;
+import cc.co.phptunnelproxy.ptplocal.net.mp.http.HttpResLine;
 import cc.co.phptunnelproxy.ptplocal.net.ssl.PipeThread;
 import cc.co.phptunnelproxy.ptplocal.net.ssl.SSLForwardServer;
 
@@ -27,15 +29,22 @@ public class ConnectMethodprocesser extends MethodProcesser {
 
 	@Override
 	public void process() throws ProxyException {
-		String destHost = reqHH.getDestHost();
-		int destPort = reqHH.getDestPort();
+		String destHost = reqLine.getDestHost();
+		int destPort = reqLine.getDestPort();
 
-		HttpHead connResHH = new HttpHead("HTTP/1.1 200 Connection established");
+		HttpResLine connResLine = null;
+		try {
+			connResLine = new HttpResLine("HTTP/1.1 200 Connection established");
+		} catch (HttpParseException e) {
+			throw new ProxyException(e);
+		}
+		HttpHead connResHH = new HttpHead();
 		connResHH.setHeader("Proxy-agent", Config.getIns().getUserAgent());
 		connResHH.setHeader("Proxy-Connection", "Keep-Alive");
 
 		try {
-			outToBrowser.write(connResHH.getHeadBytes());
+			outToBrowser.write(connResLine.getBytes());
+			outToBrowser.write(connResHH.getBytes());
 			outToBrowser.flush();
 
 			SSLForwardServer sss = new SSLForwardServer(destHost, destPort);

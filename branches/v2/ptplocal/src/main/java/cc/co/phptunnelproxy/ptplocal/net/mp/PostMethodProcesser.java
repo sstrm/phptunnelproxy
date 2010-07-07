@@ -23,24 +23,24 @@ public class PostMethodProcesser extends MethodProcesser {
 
 	@Override
 	public void process() throws ProxyException {
-		String destHost = reqHH.getDestHost();
-		int destPort = reqHH.getDestPort();
+		String destHost = reqLine.getDestHost();
+		int destPort = reqLine.getDestPort();
 
 		process(destHost, destPort, false);
-		
+
 		log.info("post method process done!");
 	}
 
 	public void process(String destHost, int destPort, boolean isSSL)
 			throws ProxyException {
+		reqLine.normalize();
+		byte[] reqLineData = reqLine.getBytes();
 
 		reqHH.removeHeader("Proxy-Connection");
 		reqHH.removeHeader("Keep-Alive");
 		reqHH.setHeader("Connection", "close");
 
-		reqHH.normalizeRequestLine();
-
-		byte[] newRequestHeaderData = reqHH.getHeadBytes();
+		byte[] newRequestHeaderData = reqHH.getBytes();
 
 		int postContentLength = Integer.parseInt(reqHH
 				.getHeader("Content-Length"));
@@ -58,12 +58,15 @@ public class PostMethodProcesser extends MethodProcesser {
 			}
 		}
 
-		byte[] newRequestData = new byte[newRequestHeaderData.length
-				+ newRequestBodyData.length];
-		ByteArrayUtil.copy(newRequestHeaderData, 0, newRequestData, 0,
-				newRequestHeaderData.length);
+		byte[] newRequestData = new byte[reqLineData.length
+				+ newRequestHeaderData.length + newRequestBodyData.length];
+		ByteArrayUtil.copy(reqLineData, 0, newRequestData, 0,
+				reqLineData.length);
+		ByteArrayUtil.copy(newRequestHeaderData, 0, newRequestData,
+				reqLineData.length, newRequestHeaderData.length);
 		ByteArrayUtil.copy(newRequestBodyData, 0, newRequestData,
-				newRequestHeaderData.length, newRequestBodyData.length);
+				reqLineData.length + newRequestHeaderData.length,
+				newRequestBodyData.length);
 
 		requestRemote(newRequestData, destHost, destPort, isSSL, outToBrowser);
 	}

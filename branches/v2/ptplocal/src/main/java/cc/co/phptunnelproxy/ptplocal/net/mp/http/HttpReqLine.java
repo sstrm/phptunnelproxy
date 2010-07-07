@@ -1,5 +1,6 @@
 package cc.co.phptunnelproxy.ptplocal.net.mp.http;
 
+import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.regex.Matcher;
@@ -21,9 +22,8 @@ public class HttpReqLine extends HttpStartLine {
 	private String httpVersion = null;
 	private URL destURL = null;
 
-	public HttpReqLine(String line) throws HttpParseException {
-		super(line);
-		Matcher m1 = reqLinePattern.matcher(line);
+	private void analize() throws HttpParseException {
+		Matcher m1 = reqLinePattern.matcher(this.line);
 		if (!m1.matches()) {
 			throw new HttpParseException("Invalid Http Request Startline: "
 					+ line);
@@ -54,10 +54,19 @@ public class HttpReqLine extends HttpStartLine {
 				destResource = m2.group(1);
 			}
 		}
-
 	}
 
-	private String getMethodName() {
+	public HttpReqLine(String line) throws HttpParseException {
+		super(line);
+		analize();
+	}
+
+	public HttpReqLine(InputStream inFromBrowser) throws HttpParseException {
+		super(inFromBrowser);
+		analize();
+	}
+
+	public String getMethodName() {
 		return this.methodName;
 	}
 
@@ -81,8 +90,8 @@ public class HttpReqLine extends HttpStartLine {
 		return this.destPort;
 	}
 
-	public String getNormalReqLine() {
-		return getMethodName() + " " + getDestResource() + " "
+	public void normalize() {
+		line = getMethodName() + " " + getDestResource() + " "
 				+ getHttpVersion();
 	}
 

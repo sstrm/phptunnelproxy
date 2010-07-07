@@ -7,7 +7,7 @@ public class DencryptWraperInputStream extends InputStream {
 	private InputStream wraperedIn;
 	private int key;
 
-	DencryptWraperInputStream(InputStream wraperedIn, int key) {
+	public DencryptWraperInputStream(InputStream wraperedIn, int key) {
 		this.wraperedIn = wraperedIn;
 		this.key = key;
 	}
@@ -17,8 +17,9 @@ public class DencryptWraperInputStream extends InputStream {
 		int b = wraperedIn.read();
 		if (b == -1) {
 			return -1;
-		} else
-			return b - key;
+		} else {
+			return (byte) (b - key) & 0xFF;
+		}
 	}
 
 	@Override
