@@ -20,7 +20,7 @@ import cc.co.phptunnelproxy.ptplocal.Config;
 import cc.co.phptunnelproxy.ptplocal.net.AbstractServer;
 import cc.co.phptunnelproxy.ptplocal.net.AbstractServerProcessThread;
 import cc.co.phptunnelproxy.ptplocal.net.ProxyException;
-import cc.co.phptunnelproxy.ptplocal.net.mp.HttpHead;
+import cc.co.phptunnelproxy.ptplocal.net.mp.http.HttpHead;
 import cc.co.phptunnelproxy.ptplocal.util.Base64Coder;
 import cc.co.phptunnelproxy.ptplocal.util.ByteArrayUtil;
 
