@@ -14,7 +14,11 @@ import org.apache.log4j.Logger;
 
 import cc.co.phptunnelproxy.ptplocal.Config;
 import cc.co.phptunnelproxy.ptplocal.net.ProxyException;
+import cc.co.phptunnelproxy.ptplocal.net.encrypt.DencryptWraperInputStream;
 import cc.co.phptunnelproxy.ptplocal.net.mp.http.HttpHead;
+import cc.co.phptunnelproxy.ptplocal.net.mp.http.HttpParseException;
+import cc.co.phptunnelproxy.ptplocal.net.mp.http.HttpReqLine;
+import cc.co.phptunnelproxy.ptplocal.net.mp.http.HttpResLine;
 import cc.co.phptunnelproxy.ptplocal.util.Base64Coder;
 import cc.co.phptunnelproxy.ptplocal.util.ByteArrayUtil;
 
@@ -23,28 +27,36 @@ public abstract class MethodProcesser {
 	protected static int buff_size = Integer.parseInt(Config.getIns().getValue(
 			"ptp.local.buff.size", "102400"));
 
+	protected HttpReqLine reqLine;
 	protected HttpHead reqHH;
 
 	public static MethodProcesser getIns(InputStream inFromBrowser,
 			OutputStream outToBrowser) throws ProxyException {
 		MethodProcesser mp = null;
 
-		HttpHead reqHH = new HttpHead(inFromBrowser, (byte) 0);
+		HttpReqLine reqLine = null;
+		HttpHead reqHH = null;
+		try {
+			reqLine = new HttpReqLine(inFromBrowser);
+			reqHH = new HttpHead(inFromBrowser);
+		} catch (HttpParseException e) {
+			throw new ProxyException(e);
+		}
 
-		if (reqHH.getMethodName().equals("GET"))
+		if (reqLine.getMethodName().equals("GET"))
 			mp = new GetMethodProcesser(inFromBrowser, outToBrowser);
-		else if (reqHH.getMethodName().equals("POST"))
+		else if (reqLine.getMethodName().equals("POST"))
 			mp = new PostMethodProcesser(inFromBrowser, outToBrowser);
-		else if (reqHH.getMethodName().equals("CONNECT"))
+		else if (reqLine.getMethodName().equals("CONNECT"))
 			mp = new ConnectMethodprocesser(inFromBrowser, outToBrowser);
 		else {
 			throw new ProxyException("Not supportted http Method: "
-					+ reqHH.getMethodName());
+					+ reqLine.getMethodName());
 		}
 
+		mp.reqLine = reqLine;
 		mp.reqHH = reqHH;
-
-		log.info(mp.reqHH.getLine());
+		log.info(reqLine.toString());
 		return mp;
 	}
 
@@ -53,22 +65,29 @@ public abstract class MethodProcesser {
 			throws ProxyException {
 		MethodProcesser mp = null;
 
-		HttpHead reqHH = new HttpHead(inFromBrowser, (byte) 0);
+		HttpReqLine reqLine = null;
+		HttpHead reqHH = null;
+		try {
+			reqLine = new HttpReqLine(inFromBrowser);
+			reqHH = new HttpHead(inFromBrowser);
+		} catch (HttpParseException e) {
+			throw new ProxyException(e);
+		}
 
-		if (reqHH.getMethodName().equals("GET"))
+		if (reqLine.getMethodName().equals("GET"))
 			mp = new SSLGetMethodProcesser(inFromBrowser, outToBrowser,
 					destHost, destPort);
-		else if (reqHH.getMethodName().equals("POST"))
+		else if (reqLine.getMethodName().equals("POST"))
 			mp = new SSLPostMethodProcesser(inFromBrowser, outToBrowser,
 					destHost, destPort);
 		else {
 			throw new ProxyException("Not supportted http Method: "
-					+ reqHH.getMethodName());
+					+ reqLine.getMethodName());
 		}
 
+		mp.reqLine = reqLine;
 		mp.reqHH = reqHH;
-
-		log.info(mp.reqHH.getLine());
+		log.info(reqLine.toString());
 		return mp;
 	}
 
@@ -81,7 +100,7 @@ public abstract class MethodProcesser {
 		URL remotePhpURL = Config.getIns().getRemotePhpURL();
 		log.info("remotePhp: " + remotePhpURL.toString());
 
-		byte key = (byte) ((Math.random() * (64)) + 1);
+		int key = (int) ((Math.random() * (64)) + 1);
 
 		byte[] postData = ByteArrayUtil.getBytesFromString("request_data="
 				+ base64urlEncode(data) + "&dest_host="
@@ -124,12 +143,20 @@ public abstract class MethodProcesser {
 
 		InputStream inFromPhp = null;
 		try {
-			inFromPhp = remotePhpConn.getInputStream();
+			inFromPhp = new DencryptWraperInputStream(
+					remotePhpConn.getInputStream(), key);
 		} catch (IOException e) {
 			throw new ProxyException(e);
 		}
 
-		HttpHead resHH = new HttpHead(inFromPhp, key);
+		HttpResLine resLine = null;
+		HttpHead resHH = null;
+		try {
+			resLine = new HttpResLine(inFromPhp);
+			resHH = new HttpHead(inFromPhp);
+		} catch (HttpParseException e) {
+			throw new ProxyException(e);
+		}
 
 		resHH.removeHeader("Keep-Alive");
 		resHH.removeHeader("Connection");
@@ -140,14 +167,14 @@ public abstract class MethodProcesser {
 		resHH.setHeader("X-PTP-Key", String.valueOf(key));
 
 		try {
-			outToBrowser.write(resHH.getHeadBytes());
+			outToBrowser.write(resLine.getBytes());
+			outToBrowser.write(resHH.getBytes());
 			outToBrowser.flush();
 
 			int readCount = -1;
 			byte[] phpByte = new byte[buff_size];
 
 			while ((readCount = inFromPhp.read(phpByte, 0, buff_size)) != -1) {
-				ByteArrayUtil.decrypt(phpByte, 0, readCount, key);
 				outToBrowser.write(phpByte, 0, readCount);
 				outToBrowser.flush();
 				log.debug(ByteArrayUtil.toString(phpByte, 0, readCount));

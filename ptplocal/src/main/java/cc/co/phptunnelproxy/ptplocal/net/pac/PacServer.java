@@ -19,8 +19,10 @@ import org.apache.log4j.Logger;
 import cc.co.phptunnelproxy.ptplocal.Config;
 import cc.co.phptunnelproxy.ptplocal.net.AbstractServer;
 import cc.co.phptunnelproxy.ptplocal.net.AbstractServerProcessThread;
-import cc.co.phptunnelproxy.ptplocal.net.ProxyException;
 import cc.co.phptunnelproxy.ptplocal.net.mp.http.HttpHead;
+import cc.co.phptunnelproxy.ptplocal.net.mp.http.HttpParseException;
+import cc.co.phptunnelproxy.ptplocal.net.mp.http.HttpReqLine;
+import cc.co.phptunnelproxy.ptplocal.net.mp.http.HttpResLine;
 import cc.co.phptunnelproxy.ptplocal.util.Base64Coder;
 import cc.co.phptunnelproxy.ptplocal.util.ByteArrayUtil;
 
@@ -86,23 +88,29 @@ class PacServerThread extends AbstractServerProcessThread {
 
 					InputStream inFromBrowser = browserSocket.getInputStream();
 					OutputStream outToBrowser = browserSocket.getOutputStream();
+					
+					HttpReqLine reqLine = null;
+					HttpResLine resLine = null;
 
 					HttpHead reqHH = null;
 					HttpHead resHH = null;
 					try {
-						reqHH = new HttpHead(inFromBrowser, (byte) 0);
-						resHH = new HttpHead("HTTP/1.0 200 OK");
-					} catch (ProxyException e) {
+						reqLine = new HttpReqLine(inFromBrowser);
+						resLine = new HttpResLine("HTTP/1.1 200 OK");
+						reqHH = new HttpHead(inFromBrowser);
+						resHH = new HttpHead();
+					} catch (HttpParseException e) {
 						log.error(e.getMessage(), e);
 						this.writeErrorResponse(outToBrowser, e, this.getClass());
+						return;
 					}
 
-					String pacRequestPath = reqHH.getDestResource();
+					String pacRequestPath = reqLine.getDestResource();
 					String pacHostName = reqHH.getHeader("Host");
 					if(pacHostName.contains(":")) {
 						pacHostName = pacHostName.split(":")[0];
 					}
-
+					
 					String resBody = null;
 
 					if (pacRequestPath.equalsIgnoreCase("/gfwlist.txt")) {
@@ -149,7 +157,8 @@ class PacServerThread extends AbstractServerProcessThread {
 
 					}
 
-					outToBrowser.write(resHH.getHeadBytes());
+					outToBrowser.write(resLine.getBytes());
+					outToBrowser.write(resHH.getBytes());
 					outToBrowser.write(ByteArrayUtil
 							.getBytesFromString(resBody));
 					outToBrowser.flush();
