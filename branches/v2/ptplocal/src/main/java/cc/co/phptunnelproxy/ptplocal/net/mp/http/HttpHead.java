@@ -1,4 +1,4 @@
-package cc.co.phptunnelproxy.ptplocal.net.mp;
+package cc.co.phptunnelproxy.ptplocal.net.mp.http;
 
 import java.io.IOException;
 import java.io.InputStream;
