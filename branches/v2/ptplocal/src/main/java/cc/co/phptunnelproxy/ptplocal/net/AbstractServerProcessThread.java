@@ -6,7 +6,7 @@ import java.io.PrintWriter;
 
 import org.apache.log4j.Logger;
 
-public abstract class AbstractServerProcessThread extends Thread {
+public abstract class AbstractServerProcessThread implements Runnable {
 
 	public void writeErrorResponse(OutputStream outToBrowser,
 			Exception e, Class<?> clazz) {

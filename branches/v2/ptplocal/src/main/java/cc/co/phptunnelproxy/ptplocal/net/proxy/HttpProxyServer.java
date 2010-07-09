@@ -14,6 +14,7 @@ import cc.co.phptunnelproxy.ptplocal.Config;
 import cc.co.phptunnelproxy.ptplocal.net.AbstractServer;
 import cc.co.phptunnelproxy.ptplocal.net.AbstractServerProcessThread;
 import cc.co.phptunnelproxy.ptplocal.net.ProxyException;
+import cc.co.phptunnelproxy.ptplocal.net.ThreadPoolService;
 import cc.co.phptunnelproxy.ptplocal.net.mp.MethodProcesser;
 
 public class HttpProxyServer extends AbstractServer {
@@ -94,9 +95,8 @@ class HttpProxyServerThread extends Thread {
 				log.info("visit from browser: "
 						+ browserSocket.getInetAddress().getHostAddress() + " "
 						+ browserSocket.getPort());
-				Thread localProxyProcessThread = new Thread(
+				ThreadPoolService.execute(
 						new HttpProxyProcessThread(browserSocket));
-				localProxyProcessThread.start();
 				log.info("current thread count: " + Thread.activeCount());
 			}
 		}

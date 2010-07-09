@@ -19,6 +19,7 @@ import org.apache.log4j.Logger;
 import cc.co.phptunnelproxy.ptplocal.Config;
 import cc.co.phptunnelproxy.ptplocal.net.AbstractServer;
 import cc.co.phptunnelproxy.ptplocal.net.AbstractServerProcessThread;
+import cc.co.phptunnelproxy.ptplocal.net.ThreadPoolService;
 import cc.co.phptunnelproxy.ptplocal.net.mp.http.HttpHead;
 import cc.co.phptunnelproxy.ptplocal.net.mp.http.HttpParseException;
 import cc.co.phptunnelproxy.ptplocal.net.mp.http.HttpReqLine;
@@ -56,7 +57,7 @@ public class PacServer extends AbstractServer {
 
 }
 
-class PacServerThread extends AbstractServerProcessThread {
+class PacServerThread extends Thread {
 	private static Logger log = Logger.getLogger(PacServerThread.class);
 
 	int pacPort;
@@ -81,93 +82,11 @@ class PacServerThread extends AbstractServerProcessThread {
 				Socket browserSocket = null;
 				try {
 					browserSocket = sSocket.accept();
-
-					log.info("pac visit from browser: "
-							+ browserSocket.getInetAddress().getHostAddress()
-							+ " " + browserSocket.getPort());
-
-					InputStream inFromBrowser = browserSocket.getInputStream();
-					OutputStream outToBrowser = browserSocket.getOutputStream();
-					
-					HttpReqLine reqLine = null;
-					HttpResLine resLine = null;
-
-					HttpHead reqHH = null;
-					HttpHead resHH = null;
-					try {
-						reqLine = new HttpReqLine(inFromBrowser);
-						resLine = new HttpResLine("HTTP/1.1 200 OK");
-						reqHH = new HttpHead(inFromBrowser);
-						resHH = new HttpHead();
-					} catch (HttpParseException e) {
-						log.error(e.getMessage(), e);
-						this.writeErrorResponse(outToBrowser, e, this.getClass());
-						return;
-					}
-
-					String pacRequestPath = reqLine.getDestResource();
-					String pacHostName = reqHH.getHeader("Host");
-					if(pacHostName.contains(":")) {
-						pacHostName = pacHostName.split(":")[0];
-					}
-					
-					String resBody = null;
-
-					if (pacRequestPath.equalsIgnoreCase("/gfwlist.txt")) {
-						String gfwlist = this.getGFWList();
-						resHH.setHeader("Content-Length",
-								Integer.toString(gfwlist.length()));
-						resHH.setHeader("Content-Type", "text/plain");
-						resBody = gfwlist;
-					} else if (pacRequestPath.equalsIgnoreCase("/rule.txt")) {
-						String rule = this.getRule();
-						resHH.setHeader("Content-Length",
-								Integer.toString(rule.length()));
-						resHH.setHeader("Content-Type", "text/plain");
-						resBody = rule;
-					} else if (pacRequestPath.equalsIgnoreCase("/gfwlist.pac")) {
-						String pac = this.getPac(
-								pacHostName,
-								Integer.parseInt(Config.getIns().getValue(
-										"ptp.local.proxy.port", "8888")));
-						resHH.setHeader("Content-Length",
-								Integer.toString(pac.length()));
-						resHH.setHeader("Content-Type", "text/plain");
-						resBody = pac;
-					} else {
-						URL pacIndexUrl = PacServer.class
-								.getResource("/etc/pacindex.html");
-						URLConnection pacIndexUrlConn = pacIndexUrl
-								.openConnection();
-
-						resHH.setHeader("Content-Length", Integer
-								.toString(pacIndexUrlConn.getContentLength()));
-						resHH.setHeader("Content-Type", "text/html");
-
-						BufferedReader pacIndexR = new BufferedReader(
-								new InputStreamReader(
-										pacIndexUrlConn.getInputStream()));
-
-						String m = null;
-						StringBuilder sb = new StringBuilder();
-						while ((m = pacIndexR.readLine()) != null) {
-							sb.append(m).append("\n");
-						}
-						resBody = sb.toString();
-
-					}
-
-					outToBrowser.write(resLine.getBytes());
-					outToBrowser.write(resHH.getBytes());
-					outToBrowser.write(ByteArrayUtil
-							.getBytesFromString(resBody));
-					outToBrowser.flush();
+					ThreadPoolService.execute(new PacProcessThread(
+							browserSocket));
 
 				} catch (SocketTimeoutException ste) {
 					continue;
-				}
-				if (browserSocket != null) {
-					browserSocket.close();
 				}
 			}
 			sSocket.close();
@@ -175,6 +94,109 @@ class PacServerThread extends AbstractServerProcessThread {
 		} catch (IOException e) {
 			log.error(e.getMessage(), e);
 		}
+	}
+}
+
+class PacProcessThread extends AbstractServerProcessThread {
+	private static Logger log = Logger.getLogger(PacProcessThread.class);
+
+	Socket browserSocket;
+
+	public PacProcessThread(Socket browserSocket) {
+		this.browserSocket = browserSocket;
+	}
+
+	@Override
+	public void run() {
+		InputStream inFromBrowser = null;
+		OutputStream outToBrowser = null;
+		try {
+			inFromBrowser = browserSocket.getInputStream();
+			outToBrowser = browserSocket.getOutputStream();
+		} catch (IOException e) {
+			log.error(e.getMessage(), e);
+			return;
+		}
+
+		HttpReqLine reqLine = null;
+		HttpResLine resLine = null;
+
+		HttpHead reqHH = null;
+		HttpHead resHH = null;
+		try {
+			reqLine = new HttpReqLine(inFromBrowser);
+			resLine = new HttpResLine("HTTP/1.1 200 OK");
+			reqHH = new HttpHead(inFromBrowser);
+			resHH = new HttpHead();
+		} catch (HttpParseException e) {
+			log.error(e.getMessage(), e);
+			this.writeErrorResponse(outToBrowser, e, this.getClass());
+			return;
+		}
+
+		String pacRequestPath = reqLine.getDestResource();
+		String pacHostName = reqHH.getHeader("Host");
+		if (pacHostName.contains(":")) {
+			pacHostName = pacHostName.split(":")[0];
+		}
+
+		String resBody = null;
+
+		if (pacRequestPath.equalsIgnoreCase("/gfwlist.txt")) {
+			String gfwlist = this.getGFWList();
+			resHH.setHeader("Content-Length",
+					Integer.toString(gfwlist.length()));
+			resHH.setHeader("Content-Type", "text/plain");
+			resBody = gfwlist;
+		} else if (pacRequestPath.equalsIgnoreCase("/rule.txt")) {
+			String rule = this.getRule();
+			resHH.setHeader("Content-Length", Integer.toString(rule.length()));
+			resHH.setHeader("Content-Type", "text/plain");
+			resBody = rule;
+		} else if (pacRequestPath.equalsIgnoreCase("/gfwlist.pac")) {
+			String pac = this.getPac(
+					pacHostName,
+					Integer.parseInt(Config.getIns().getValue(
+							"ptp.local.proxy.port", "8888")));
+			resHH.setHeader("Content-Length", Integer.toString(pac.length()));
+			resHH.setHeader("Content-Type", "text/plain");
+			resBody = pac;
+		} else {
+			try {
+				URL pacIndexUrl = PacServer.class
+						.getResource("/etc/pacindex.html");
+				URLConnection pacIndexUrlConn = pacIndexUrl.openConnection();
+
+				resHH.setHeader("Content-Length",
+						Integer.toString(pacIndexUrlConn.getContentLength()));
+				resHH.setHeader("Content-Type", "text/html");
+
+				BufferedReader pacIndexR = new BufferedReader(
+						new InputStreamReader(pacIndexUrlConn.getInputStream()));
+
+				String m = null;
+				StringBuilder sb = new StringBuilder();
+				while ((m = pacIndexR.readLine()) != null) {
+					sb.append(m).append("\n");
+				}
+				resBody = sb.toString();
+			} catch (IOException e) {
+				log.error(e.getMessage(), e);
+			}
+
+		}
+
+		try {
+			outToBrowser.write(resLine.getBytes());
+			outToBrowser.write(resHH.getBytes());
+			outToBrowser.write(ByteArrayUtil.getBytesFromString(resBody));
+			outToBrowser.flush();
+
+			browserSocket.close();
+		} catch (IOException e) {
+			log.error(e.getMessage(), e);
+		}
+
 	}
 
 	private String getGFWList() {
