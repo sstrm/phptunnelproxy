@@ -18,6 +18,7 @@ import cc.co.phptunnelproxy.ptplocal.Config;
 import cc.co.phptunnelproxy.ptplocal.net.AbstractServer;
 import cc.co.phptunnelproxy.ptplocal.net.AbstractServerProcessThread;
 import cc.co.phptunnelproxy.ptplocal.net.ProxyException;
+import cc.co.phptunnelproxy.ptplocal.net.ThreadPoolService;
 import cc.co.phptunnelproxy.ptplocal.net.mp.MethodProcesser;
 
 public class SSLForwardServer extends AbstractServer {
@@ -26,7 +27,8 @@ public class SSLForwardServer extends AbstractServer {
 	private String destHost;
 	private int destPort;
 
-	private Thread sslForwardServerProcessThread;
+	//private Thread sslForwardServerProcessThread;
+	private SSLServerSocket sslServerSocket = null;
 
 	public SSLForwardServer(String destHost, int destPort) {
 		this.destHost = destHost;
@@ -48,7 +50,7 @@ public class SSLForwardServer extends AbstractServer {
 					this.destHost) }, null, null);
 			SSLServerSocketFactory ssf = sc.getServerSocketFactory();
 
-			SSLServerSocket sslServerSocket = null;
+			
 			while (true) {
 				try {
 					sslServerSocket = (SSLServerSocket) ssf
@@ -61,11 +63,9 @@ public class SSLForwardServer extends AbstractServer {
 			sslServerSocket.setSoTimeout(10000);
 			log.info("local ssl server started on port: " + localSslPort);
 
-			sslForwardServerProcessThread = new Thread(
+			ThreadPoolService.execute(
 					new SSLForwardServerProcessThread(sslServerSocket,
 							destHost, destPort));
-			sslForwardServerProcessThread.start();
-
 		} catch (Exception e) {
 			log.error(e.getMessage(), e);
 		}
@@ -74,7 +74,7 @@ public class SSLForwardServer extends AbstractServer {
 
 	@Override
 	public boolean isServerOn() {
-		return sslForwardServerProcessThread.isAlive();
+		return !sslServerSocket.isClosed();
 	}
 
 	@Override

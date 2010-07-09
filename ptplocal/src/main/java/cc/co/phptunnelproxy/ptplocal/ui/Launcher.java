@@ -7,6 +7,7 @@ import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 
 import cc.co.phptunnelproxy.ptplocal.Config;
+import cc.co.phptunnelproxy.ptplocal.net.ThreadPoolService;
 import cc.co.phptunnelproxy.ptplocal.net.pac.PacServer;
 import cc.co.phptunnelproxy.ptplocal.net.proxy.HttpProxyServer;
 
@@ -41,6 +42,8 @@ public abstract class Launcher {
 	}
 
 	public static synchronized void startServer() {
+		ThreadPoolService.startService();
+		
 		pacServer = new PacServer();
 		pacServer.startService();
 
@@ -56,6 +59,8 @@ public abstract class Launcher {
 		if (pacServer != null) {
 			pacServer.stopService();
 		}
+		
+		ThreadPoolService.stopService();
 	}
 
 }
