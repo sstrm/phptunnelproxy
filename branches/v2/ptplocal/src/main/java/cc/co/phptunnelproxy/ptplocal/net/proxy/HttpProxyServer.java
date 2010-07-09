@@ -147,7 +147,7 @@ class HttpProxyProcessThread extends AbstractServerProcessThread {
 			try {
 				availableBytes = inFromBrowser.available();
 			} catch (IOException e) {
-				log.error(e.getMessage());
+				log.info(e.getMessage());
 				break;
 			}
 			if (availableBytes > 0) {

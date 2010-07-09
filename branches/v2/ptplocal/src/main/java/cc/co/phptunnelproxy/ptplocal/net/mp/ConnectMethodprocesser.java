@@ -9,6 +9,7 @@ import org.apache.log4j.Logger;
 
 import cc.co.phptunnelproxy.ptplocal.Config;
 import cc.co.phptunnelproxy.ptplocal.net.ProxyException;
+import cc.co.phptunnelproxy.ptplocal.net.ThreadPoolService;
 import cc.co.phptunnelproxy.ptplocal.net.mp.http.HttpHead;
 import cc.co.phptunnelproxy.ptplocal.net.mp.http.HttpParseException;
 import cc.co.phptunnelproxy.ptplocal.net.mp.http.HttpResLine;
@@ -54,18 +55,18 @@ public class ConnectMethodprocesser extends MethodProcesser {
 			InputStream sslIn = sslSocket.getInputStream();
 			OutputStream sslOut = sslSocket.getOutputStream();
 
-			Thread pipeThreadFromBrowserToSSLServer = new PipeThread(
+			PipeThread pipeThreadFromBrowserToSSLServer = new PipeThread(
 					inFromBrowser, sslOut, "Pipe from browser to ssl");
-			Thread pipeThreadFromSSLServerToBrowser = new PipeThread(sslIn,
+			PipeThread pipeThreadFromSSLServerToBrowser = new PipeThread(sslIn,
 					outToBrowser, "Pipe from ssl to browser");
-			pipeThreadFromBrowserToSSLServer.start();
-			pipeThreadFromSSLServerToBrowser.start();
-			try {
-				pipeThreadFromBrowserToSSLServer.join();
-				pipeThreadFromSSLServerToBrowser.join();
-			} catch (InterruptedException e) {
-				log.error(e.getMessage(), e);
-			}
+
+			ThreadPoolService.execute(pipeThreadFromBrowserToSSLServer);
+			ThreadPoolService.execute(pipeThreadFromSSLServerToBrowser);
+
+			log.info("wait pipe threads");
+			pipeThreadFromBrowserToSSLServer.join();
+			pipeThreadFromSSLServerToBrowser.join();
+			log.info("pipe threads end");
 
 			sslOut.close();
 			sslIn.close();
