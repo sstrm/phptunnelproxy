@@ -6,6 +6,7 @@ import java.io.OutputStream;
 import org.apache.log4j.Logger;
 
 import cc.co.phptunnelproxy.ptplocal.net.ProxyException;
+import cc.co.phptunnelproxy.ptplocal.net.mp.http.HttpParseException;
 import cc.co.phptunnelproxy.ptplocal.util.ByteArrayUtil;
 
 public class GetMethodProcesser extends MethodProcesser {
@@ -31,20 +32,23 @@ public class GetMethodProcesser extends MethodProcesser {
 
 	protected void process(String destHost, int destPort, boolean isSSL)
 			throws ProxyException {
-		reqLine.normalize();
-		
 		reqHH.removeHeader("Proxy-Connection");
 		reqHH.removeHeader("Keep-Alive");
-		//reqHH.removeHeader("Accept-Encoding");
+		// reqHH.removeHeader("Accept-Encoding");
 		reqHH.setHeader("Connection", "close");
 
-		byte[] reqLineData = reqLine.getBytes();
+		byte[] reqLineData = null;
+		try {
+			reqLineData = reqLine.getNormalizedIns().getBytes();
+		} catch (HttpParseException e) {
+			throw new ProxyException(e);
+		}
 		byte[] reqHeadData = reqHH.getBytes();
 		byte[] reqData = new byte[reqLineData.length + reqHeadData.length];
 		ByteArrayUtil.copy(reqLineData, 0, reqData, 0, reqLineData.length);
-		ByteArrayUtil.copy(reqHeadData, 0, reqData, reqLineData.length, reqHeadData.length);
-		requestRemote(reqData, destHost, destPort, isSSL,
-				outToBrowser);
+		ByteArrayUtil.copy(reqHeadData, 0, reqData, reqLineData.length,
+				reqHeadData.length);
+		requestRemote(reqData, destHost, destPort, isSSL, outToBrowser);
 	}
 
 }

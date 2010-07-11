@@ -7,6 +7,7 @@ import java.io.OutputStream;
 import org.apache.log4j.Logger;
 
 import cc.co.phptunnelproxy.ptplocal.net.ProxyException;
+import cc.co.phptunnelproxy.ptplocal.net.mp.http.HttpParseException;
 import cc.co.phptunnelproxy.ptplocal.util.ByteArrayUtil;
 
 public class PostMethodProcesser extends MethodProcesser {
@@ -33,8 +34,12 @@ public class PostMethodProcesser extends MethodProcesser {
 
 	public void process(String destHost, int destPort, boolean isSSL)
 			throws ProxyException {
-		reqLine.normalize();
-		byte[] reqLineData = reqLine.getBytes();
+		byte[] reqLineData = null;
+		try {
+			reqLineData = reqLine.getNormalizedIns().getBytes();
+		} catch (HttpParseException e) {
+			throw new ProxyException(e);
+		}
 
 		reqHH.removeHeader("Proxy-Connection");
 		reqHH.removeHeader("Keep-Alive");
@@ -42,8 +47,8 @@ public class PostMethodProcesser extends MethodProcesser {
 
 		byte[] newRequestHeaderData = reqHH.getBytes();
 
-		int postContentLength = Integer.parseInt(reqHH
-				.getHeader("Content-Length"));
+		int postContentLength = Integer.parseInt(reqHH.getHeader(
+				"Content-Length").get(0));
 		byte[] newRequestBodyData = new byte[postContentLength];
 		int postContentReadCount = 0;
 		while (postContentReadCount < postContentLength) {

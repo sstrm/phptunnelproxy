@@ -3,7 +3,9 @@ package cc.co.phptunnelproxy.ptplocal.net.mp.http;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.log4j.Logger;
 
@@ -16,7 +18,7 @@ public class HttpHead {
 	private static int buff_size = Integer.parseInt(Config.getIns().getValue(
 			"ptp.local.buff.size", "102400"));
 
-	private List<HeaderNameValue> headers = new ArrayList<HeaderNameValue>();
+	private Map<String, List<String>> headers = new HashMap<String, List<String>>();
 
 	public HttpHead() {
 
@@ -56,7 +58,7 @@ public class HttpHead {
 		headLength = readHttpHead(buff, in);
 
 		String headString = ByteArrayUtil.toString(buff, 0, headLength);
-		//log.info(headString);
+		// log.info(headString);
 		String[] headArray = headString.split("\\r\\n");
 
 		for (int i = 0; i < headArray.length; i++) {
@@ -64,7 +66,7 @@ public class HttpHead {
 			if (splitIndex > 0) {
 				String headerName = headArray[i].substring(0, splitIndex);
 				String headerValue = headArray[i].substring(splitIndex + 2);
-				headers.add(new HeaderNameValue(headerName, headerValue));
+				this.addHeaerValue(headerName, headerValue);
 			} else {
 				// what a fucking header?!
 				throw new HttpParseException("Get a wrong http header: "
@@ -76,54 +78,41 @@ public class HttpHead {
 
 	public void setHeader(String headerName, String headerValue) {
 		removeHeader(headerName);
-		this.headers.add(new HeaderNameValue(headerName, headerValue));
+		addHeaerValue(headerName, headerValue);
 	}
 
-	public boolean removeHeader(String headerName) {
-		for (HeaderNameValue hnv : this.headers) {
-			if (hnv.getName().equals(headerName)) {
-				return this.headers.remove(hnv);
-			}
+	private void addHeaerValue(String headerName, String headerValue) {
+		List<String> headerValueList = this.headers.get(headerName);
+		if (headerValueList == null) {
+			headerValueList = new ArrayList<String>();
 		}
-		return false;
+		headerValueList.add(headerValue);
+		this.headers.put(headerName, headerValueList);
 	}
 
-	public String getHeader(String headerName) {
-		for (HeaderNameValue hnv : this.headers) {
-			if (hnv.getName().equals(headerName)) {
-				return hnv.getValue();
-			}
-		}
-		return null;
+	public void removeHeader(String headerName) {
+		this.headers.remove(headerName);
+	}
+
+	public List<String> getHeader(String headerName) {
+		return this.headers.get(headerName);
 	}
 
 	public byte[] getBytes() {
 		final String CRLF = "\r\n";
 		StringBuilder sb = new StringBuilder();
-		for (HeaderNameValue hnv : this.headers) {
-			sb.append(hnv.getName()).append(": ").append(hnv.getValue())
-					.append(CRLF);
+
+		for (String headerName : this.headers.keySet()) {
+			List<String> headerValueList = this.headers.get(headerName);
+			for (String headerValue : headerValueList) {
+				sb.append(headerName).append(": ").append(headerValue)
+						.append(CRLF);
+			}
 		}
+
 		sb.append(CRLF);
 
 		return ByteArrayUtil.getBytesFromString(sb.toString());
 	}
-}
 
-class HeaderNameValue {
-	private String headerName;
-	private String headerValue;
-
-	HeaderNameValue(String headerName, String headerValue) {
-		this.headerName = headerName;
-		this.headerValue = headerValue;
-	}
-
-	public String getName() {
-		return this.headerName;
-	}
-
-	public String getValue() {
-		return this.headerValue;
-	}
 }

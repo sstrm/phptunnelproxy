@@ -135,7 +135,7 @@ class PacProcessThread extends AbstractServerProcessThread {
 		}
 
 		String pacRequestPath = reqLine.getDestResource();
-		String pacHostName = reqHH.getHeader("Host");
+		String pacHostName = reqHH.getHeader("Host").get(0);
 		if (pacHostName.contains(":")) {
 			pacHostName = pacHostName.split(":")[0];
 		}
