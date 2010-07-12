@@ -11,7 +11,7 @@ import cc.co.phptunnelproxy.ptplocal.util.DumpUtil;
 
 public abstract class HttpStartLine {
 	private static Logger log = Logger.getLogger(HttpStartLine.class);
-	
+
 	protected String line;
 
 	public HttpStartLine(String line) {
@@ -48,12 +48,12 @@ public abstract class HttpStartLine {
 		this.line = ByteArrayUtil.toString(buff, 0, index);
 		this.line = this.line.trim();
 	}
-	
+
 	public byte[] getBytes() {
 		final String CRLF = "\r\n";
-		return ByteArrayUtil.getBytesFromString(line+CRLF);
+		return ByteArrayUtil.getBytesFromString(line + CRLF);
 	}
-	
+
 	@Override
 	public String toString() {
 		return this.line;
