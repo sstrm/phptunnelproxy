@@ -90,6 +90,10 @@ public class HttpReqLine extends HttpStartLine {
 		return this.destPort;
 	}
 
+	public URL getDestURL() {
+		return destURL;
+	}
+
 	public HttpReqLine getNormalizedIns() throws HttpParseException {
 		String normalizedLine = getMethodName() + " " + getDestResource() + " "
 				+ getHttpVersion();

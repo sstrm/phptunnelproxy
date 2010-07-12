@@ -34,7 +34,7 @@ public abstract class HttpStartLine {
 			try {
 				buff[index++] = b;
 			} catch (ArrayIndexOutOfBoundsException e) {
-				log.debug(DumpUtil.dump(buff, 0, index - 1), e);
+				log.info(DumpUtil.dump(buff, 0, index - 1), e);
 				log.error(e.getMessage(), e);
 				throw new HttpParseException(e);
 			}

@@ -63,7 +63,7 @@ public class SSLForwardServer extends AbstractServer {
 			sslServerSocket.setSoTimeout(10000);
 			log.info("local ssl server started on port: " + localSslPort);
 
-			ThreadPoolService.execute(
+			ThreadPoolService.submit(
 					new SSLForwardServerProcessThread(sslServerSocket,
 							destHost, destPort));
 		} catch (Exception e) {

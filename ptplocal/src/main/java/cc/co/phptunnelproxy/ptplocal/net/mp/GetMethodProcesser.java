@@ -26,7 +26,7 @@ public class GetMethodProcesser extends MethodProcesser {
 		int destPort = reqLine.getDestPort();
 
 		process(destHost, destPort, false);
-
+		//process_url();
 		log.info("get method process done!");
 	}
 
@@ -51,4 +51,13 @@ public class GetMethodProcesser extends MethodProcesser {
 		requestRemote(reqData, destHost, destPort, isSSL, outToBrowser);
 	}
 
+	protected void process_url()
+			throws ProxyException {
+		reqHH.removeHeader("Proxy-Connection");
+		reqHH.removeHeader("Keep-Alive");
+		//reqHH.removeHeader("Accept-Encoding");
+		reqHH.setHeader("Connection", "close");
+
+		this.request(reqLine.getDestURL(), reqHH.getBytes(), new byte[0], outToBrowser);
+	}
 }
