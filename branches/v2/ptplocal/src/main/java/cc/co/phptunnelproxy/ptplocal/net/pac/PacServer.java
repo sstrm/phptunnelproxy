@@ -82,7 +82,7 @@ class PacServerThread extends Thread {
 				Socket browserSocket = null;
 				try {
 					browserSocket = sSocket.accept();
-					ThreadPoolService.execute(new PacProcessThread(
+					ThreadPoolService.submit(new PacProcessThread(
 							browserSocket));
 
 				} catch (SocketTimeoutException ste) {
