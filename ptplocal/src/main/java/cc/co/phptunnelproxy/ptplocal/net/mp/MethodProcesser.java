@@ -22,6 +22,7 @@ import cc.co.phptunnelproxy.ptplocal.net.mp.http.HttpReqLine;
 import cc.co.phptunnelproxy.ptplocal.net.mp.http.HttpResLine;
 import cc.co.phptunnelproxy.ptplocal.util.Base64Coder;
 import cc.co.phptunnelproxy.ptplocal.util.ByteArrayUtil;
+import cc.co.phptunnelproxy.ptplocal.util.DumpUtil;
 
 public abstract class MethodProcesser {
 	private static Logger log = Logger.getLogger(MethodProcesser.class);
@@ -54,6 +55,11 @@ public abstract class MethodProcesser {
 			throw new ProxyException("Not supportted http Method: "
 					+ reqLine.getMethodName());
 		}
+
+		reqHH.removeHeader("Proxy-Connection");
+		reqHH.removeHeader("Keep-Alive");
+		// reqHH.removeHeader("Accept-Encoding");
+		reqHH.setHeader("Connection", "close");
 
 		mp.reqLine = reqLine;
 		mp.reqHH = reqHH;
@@ -92,21 +98,22 @@ public abstract class MethodProcesser {
 		return mp;
 	}
 
-	protected void requestRemote(byte[] data, String destHost, int destPort,
-			boolean isSSL, OutputStream outToBrowser) throws ProxyException {
-
-		log.debug("request data: \n"
-				+ ByteArrayUtil.toString(data, 0, data.length));
-
-		URL remotePhpURL = Config.getIns().getRemotePhpURL();
+	protected void request(URL destUrl, byte[] headData, byte[] bodyData,
+			OutputStream outToBrowser) throws ProxyException {
+		URL remotePhpURL = null;
+		try {
+			remotePhpURL = new URL(
+					"http://s1.phptunnelproxy.co.cc/ptpremote/curlremote.php");
+		} catch (MalformedURLException e1) {
+		}
 		log.info("remotePhp: " + remotePhpURL.toString());
 
 		int key = (int) ((Math.random() * (64)) + 1);
 
-		byte[] postData = ByteArrayUtil.getBytesFromString("request_data="
-				+ base64urlEncode(data) + "&dest_host="
-				+ base64urlEncode(destHost) + "&dest_port=" + destPort
-				+ "&is_ssl=" + isSSL + "&key=" + key);
+		byte[] postData = ByteArrayUtil.getBytesFromString("head_data="
+				+ base64urlEncode(headData) + "&body_data="
+				+ base64urlEncode(bodyData) + "&dest_url="
+				+ base64urlEncode(destUrl.toString()) + "&key=" + key);
 
 		log.debug("request: "
 				+ ByteArrayUtil.toString(postData, 0, postData.length));
@@ -161,6 +168,7 @@ public abstract class MethodProcesser {
 
 		resHH.removeHeader("Keep-Alive");
 		resHH.removeHeader("Connection");
+		resHH.removeHeader("Transfer-Encoding");
 		resHH.setHeader("Proxy-Connection", "keep-alive");
 		resHH.setHeader("X-PTP-User-Agent", Config.getIns().getUserAgent());
 		resHH.setHeader("X-PTP-Thread-Name", Thread.currentThread().getName());
@@ -178,112 +186,7 @@ public abstract class MethodProcesser {
 			while ((readCount = inFromPhp.read(phpByte, 0, buff_size)) != -1) {
 				outToBrowser.write(phpByte, 0, readCount);
 				outToBrowser.flush();
-				log.debug(ByteArrayUtil.toString(phpByte, 0, readCount));
-			}
-
-		} catch (SocketException se) {
-			log.info("browser sotpped connection");
-			// do not throw ProxyException
-		} catch (IOException e) {
-			throw new ProxyException(e);
-		} finally {
-			try {
-				inFromPhp.close();
-				remotePhpConn.disconnect();
-			} catch (IOException e) {
-				throw new ProxyException(e);
-			}
-		}
-
-	}
-
-	protected void request(URL destUrl, byte[] headData, byte[] bodyData,
-			OutputStream outToBrowser) throws ProxyException {
-		URL remotePhpURL = null;
-		try {
-			remotePhpURL = new URL("http://s1.phptunnelproxy.co.cc/ptpremote/curlremote.php");
-		} catch (MalformedURLException e1) {
-		}
-		log.info("remotePhp: " + remotePhpURL.toString());
-
-		int key = (int) ((Math.random() * (64)) + 1);
-
-		byte[] postData = ByteArrayUtil.getBytesFromString("head_data="
-				+ base64urlEncode(headData) + "&body_data="
-				+ base64urlEncode(bodyData) + "&dest_url="
-				+ base64urlEncode(destUrl.toString()) + "&key=" + key);
-
-		log.info("request: "
-				+ ByteArrayUtil.toString(postData, 0, postData.length));
-
-		HttpURLConnection remotePhpConn = null;
-		try {
-			remotePhpConn = (HttpURLConnection) remotePhpURL
-					.openConnection(Config.getIns().getProxy());
-		} catch (IOException e) {
-			throw new ProxyException(e);
-		}
-		try {
-			remotePhpConn.setRequestMethod("POST");
-		} catch (ProtocolException e) {
-
-		}
-		remotePhpConn.setRequestProperty("User-Agent", Config.getIns()
-				.getUserAgent());
-		remotePhpConn.setRequestProperty("Content-Type",
-				"application/x-www-form-urlencoded");
-		remotePhpConn.setRequestProperty("Connection", "close");
-		remotePhpConn.setUseCaches(false);
-		remotePhpConn.setDoOutput(true);
-
-		try {
-			OutputStream outToPhp = remotePhpConn.getOutputStream();
-
-			outToPhp.write(postData);
-
-			outToPhp.flush();
-			outToPhp.close();
-		} catch (IOException e) {
-			throw new ProxyException(e);
-		}
-
-		InputStream inFromPhp = null;
-		try {
-			inFromPhp = new DencryptWraperInputStream(
-					remotePhpConn.getInputStream(), key);
-		} catch (IOException e) {
-			throw new ProxyException(e);
-		}
-
-		HttpResLine resLine = null;
-		HttpHead resHH = null;
-		try {
-			resLine = new HttpResLine(inFromPhp);
-			resHH = new HttpHead(inFromPhp);
-		} catch (HttpParseException e) {
-			throw new ProxyException(e);
-		}
-
-		resHH.removeHeader("Keep-Alive");
-		resHH.removeHeader("Connection");
-		resHH.setHeader("Proxy-Connection", "keep-alive");
-		resHH.setHeader("X-PTP-User-Agent", Config.getIns().getUserAgent());
-		resHH.setHeader("X-PTP-Thread-Name", Thread.currentThread().getName());
-		resHH.setHeader("X-PTP-Remote-PHP", remotePhpURL.toString());
-		resHH.setHeader("X-PTP-Key", String.valueOf(key));
-
-		try {
-			outToBrowser.write(resLine.getBytes());
-			outToBrowser.write(resHH.getBytes());
-			outToBrowser.flush();
-
-			int readCount = -1;
-			byte[] phpByte = new byte[buff_size];
-
-			while ((readCount = inFromPhp.read(phpByte, 0, buff_size)) != -1) {
-				outToBrowser.write(phpByte, 0, readCount);
-				outToBrowser.flush();
-				log.debug(ByteArrayUtil.toString(phpByte, 0, readCount));
+				log.info(DumpUtil.dump(phpByte, 0, readCount));
 			}
 
 		} catch (SocketException se) {
