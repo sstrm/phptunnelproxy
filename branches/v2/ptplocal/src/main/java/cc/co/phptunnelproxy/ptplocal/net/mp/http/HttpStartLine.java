@@ -11,7 +11,7 @@ import cc.co.phptunnelproxy.ptplocal.util.DumpUtil;
 
 public abstract class HttpStartLine {
 	private static Logger log = Logger.getLogger(HttpStartLine.class);
-
+	
 	protected String line;
 
 	public HttpStartLine(String line) {
@@ -34,7 +34,7 @@ public abstract class HttpStartLine {
 			try {
 				buff[index++] = b;
 			} catch (ArrayIndexOutOfBoundsException e) {
-				log.info(DumpUtil.dump(buff, 0, index - 1), e);
+				log.debug(DumpUtil.dump(buff, 0, index - 1), e);
 				log.error(e.getMessage(), e);
 				throw new HttpParseException(e);
 			}
@@ -48,12 +48,12 @@ public abstract class HttpStartLine {
 		this.line = ByteArrayUtil.toString(buff, 0, index);
 		this.line = this.line.trim();
 	}
-
+	
 	public byte[] getBytes() {
 		final String CRLF = "\r\n";
-		return ByteArrayUtil.getBytesFromString(line + CRLF);
+		return ByteArrayUtil.getBytesFromString(line+CRLF);
 	}
-
+	
 	@Override
 	public String toString() {
 		return this.line;

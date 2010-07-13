@@ -2,7 +2,6 @@ package cc.co.phptunnelproxy.ptplocal.net;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 
 public class ThreadPoolService {
 
@@ -12,8 +11,8 @@ public class ThreadPoolService {
 		es = Executors.newFixedThreadPool(20);
 	}
 
-	public static Future<?> submit(Runnable task) {
-		return es.submit(task);
+	public static void execute(Runnable command) {
+		es.execute(command);
 	}
 
 	public static void stopService() {

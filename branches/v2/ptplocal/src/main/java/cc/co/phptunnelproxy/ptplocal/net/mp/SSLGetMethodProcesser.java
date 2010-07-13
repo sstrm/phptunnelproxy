@@ -2,8 +2,6 @@ package cc.co.phptunnelproxy.ptplocal.net.mp;
 
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.MalformedURLException;
-import java.net.URL;
 
 import org.apache.log4j.Logger;
 
@@ -25,13 +23,7 @@ public class SSLGetMethodProcesser extends GetMethodProcesser {
 
 	@Override
 	public void process() throws ProxyException {
-		try {
-			URL destURL = new URL("https://"+destHost+":"+destPort+reqLine.getDestResource());
-			log.info("https://"+destHost+":"+destPort+reqLine.getDestResource());
-			request(destURL, reqHH.getBytes(), new byte[0], outToBrowser);
-		} catch (MalformedURLException e) {
-			throw new ProxyException(e);
-		}
+		process(destHost, destPort, true);
 		log.info("ssl get method process done!");
 	}
 
