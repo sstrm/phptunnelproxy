@@ -5,10 +5,6 @@ import java.io.StringWriter;
 
 public class DumpUtil {
 
-	public static String dump(byte[] array) {
-		return dump(array, 0, array.length);
-	}
-
 	public static String dump(byte[] array, int off, int length) {
 		StringWriter sw = new StringWriter();
 		PrintWriter pw = new PrintWriter(sw);

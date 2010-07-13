@@ -4,8 +4,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
 
 import org.apache.log4j.Logger;
 
@@ -62,21 +60,12 @@ public class ConnectMethodprocesser extends MethodProcesser {
 			PipeThread pipeThreadFromSSLServerToBrowser = new PipeThread(sslIn,
 					outToBrowser, "Pipe from ssl to browser");
 
-			Future<?> pipeThreadFutureFromBrowserToSSLServer = ThreadPoolService
-					.submit(pipeThreadFromBrowserToSSLServer);
-			Future<?> pipeThreadFutureFromSSLServerToBrowser = ThreadPoolService
-					.submit(pipeThreadFromSSLServerToBrowser);
+			ThreadPoolService.execute(pipeThreadFromBrowserToSSLServer);
+			ThreadPoolService.execute(pipeThreadFromSSLServerToBrowser);
 
 			log.info("wait pipe threads");
-			try {
-				pipeThreadFutureFromBrowserToSSLServer.get();
-				pipeThreadFutureFromSSLServerToBrowser.get();
-			} catch (InterruptedException e) {
-				throw new ProxyException(e);
-			} catch (ExecutionException e) {
-				throw new ProxyException(e);
-			}
-
+			pipeThreadFromBrowserToSSLServer.join();
+			pipeThreadFromSSLServerToBrowser.join();
 			log.info("pipe threads end");
 
 			sslOut.close();
