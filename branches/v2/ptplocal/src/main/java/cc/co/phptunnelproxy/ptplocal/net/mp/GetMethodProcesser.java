@@ -7,7 +7,6 @@ import org.apache.log4j.Logger;
 
 import cc.co.phptunnelproxy.ptplocal.net.ProxyException;
 import cc.co.phptunnelproxy.ptplocal.net.mp.http.HttpParseException;
-import cc.co.phptunnelproxy.ptplocal.util.ByteArrayUtil;
 
 public class GetMethodProcesser extends MethodProcesser {
 	private static Logger log = Logger.getLogger(GetMethodProcesser.class);
@@ -24,13 +23,14 @@ public class GetMethodProcesser extends MethodProcesser {
 	public void process() throws ProxyException {
 		String destHost = reqLine.getDestHost();
 		int destPort = reqLine.getDestPort();
+		String destUrl = reqLine.getAbsDestResource();
 
-		process(destHost, destPort, false);
+		process(destUrl, destHost, destPort, false);
 
 		log.info("get method process done!");
 	}
 
-	protected void process(String destHost, int destPort, boolean isSSL)
+	protected void process(String destUrl, String destHost, int destPort, boolean isSSL)
 			throws ProxyException {
 		reqHH.removeHeader("Proxy-Connection");
 		reqHH.removeHeader("Keep-Alive");
@@ -44,11 +44,10 @@ public class GetMethodProcesser extends MethodProcesser {
 			throw new ProxyException(e);
 		}
 		byte[] reqHeadData = reqHH.getBytes();
-		byte[] reqData = new byte[reqLineData.length + reqHeadData.length];
-		ByteArrayUtil.copy(reqLineData, 0, reqData, 0, reqLineData.length);
-		ByteArrayUtil.copy(reqHeadData, 0, reqData, reqLineData.length,
-				reqHeadData.length);
-		requestRemote(reqData, destHost, destPort, isSSL, outToBrowser);
+		log.info("get method begin request remote!");
+		requestRemote(reqLineData, reqHeadData, new byte[0],
+				destUrl, destHost, destPort, isSSL,
+				outToBrowser);
 	}
 
 }

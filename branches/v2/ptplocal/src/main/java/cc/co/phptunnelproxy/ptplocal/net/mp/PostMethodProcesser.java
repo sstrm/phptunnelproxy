@@ -8,7 +8,6 @@ import org.apache.log4j.Logger;
 
 import cc.co.phptunnelproxy.ptplocal.net.ProxyException;
 import cc.co.phptunnelproxy.ptplocal.net.mp.http.HttpParseException;
-import cc.co.phptunnelproxy.ptplocal.util.ByteArrayUtil;
 
 public class PostMethodProcesser extends MethodProcesser {
 
@@ -26,13 +25,14 @@ public class PostMethodProcesser extends MethodProcesser {
 	public void process() throws ProxyException {
 		String destHost = reqLine.getDestHost();
 		int destPort = reqLine.getDestPort();
+		String destUrl = reqLine.getAbsDestResource();
 
-		process(destHost, destPort, false);
+		process(destUrl, destHost, destPort, false);
 
 		log.info("post method process done!");
 	}
 
-	public void process(String destHost, int destPort, boolean isSSL)
+	public void process(String destUrl, String destHost, int destPort, boolean isSSL)
 			throws ProxyException {
 		byte[] reqLineData = null;
 		try {
@@ -45,15 +45,15 @@ public class PostMethodProcesser extends MethodProcesser {
 		reqHH.removeHeader("Keep-Alive");
 		reqHH.setHeader("Connection", "close");
 
-		byte[] newRequestHeaderData = reqHH.getBytes();
+		byte[] reqHeadData = reqHH.getBytes();
 
 		int postContentLength = Integer.parseInt(reqHH.getHeader(
 				"Content-Length").get(0));
-		byte[] newRequestBodyData = new byte[postContentLength];
+		byte[] reqBodyData = new byte[postContentLength];
 		int postContentReadCount = 0;
 		while (postContentReadCount < postContentLength) {
 			try {
-				postContentReadCount += inFromBrowser.read(newRequestBodyData,
+				postContentReadCount += inFromBrowser.read(reqBodyData,
 						postContentReadCount, postContentLength
 								- postContentReadCount);
 
@@ -63,17 +63,9 @@ public class PostMethodProcesser extends MethodProcesser {
 			}
 		}
 
-		byte[] newRequestData = new byte[reqLineData.length
-				+ newRequestHeaderData.length + newRequestBodyData.length];
-		ByteArrayUtil.copy(reqLineData, 0, newRequestData, 0,
-				reqLineData.length);
-		ByteArrayUtil.copy(newRequestHeaderData, 0, newRequestData,
-				reqLineData.length, newRequestHeaderData.length);
-		ByteArrayUtil.copy(newRequestBodyData, 0, newRequestData,
-				reqLineData.length + newRequestHeaderData.length,
-				newRequestBodyData.length);
-
-		requestRemote(newRequestData, destHost, destPort, isSSL, outToBrowser);
+		requestRemote(reqLineData, reqHeadData, reqBodyData,
+				destUrl, destHost, destPort, isSSL,
+				outToBrowser);
 	}
 
 }

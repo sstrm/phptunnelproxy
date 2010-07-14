@@ -7,7 +7,6 @@ import org.apache.log4j.Logger;
 
 import cc.co.phptunnelproxy.ptplocal.Config;
 import cc.co.phptunnelproxy.ptplocal.util.ByteArrayUtil;
-import cc.co.phptunnelproxy.ptplocal.util.DumpUtil;
 
 public abstract class HttpStartLine {
 	private static Logger log = Logger.getLogger(HttpStartLine.class);
@@ -34,7 +33,7 @@ public abstract class HttpStartLine {
 			try {
 				buff[index++] = b;
 			} catch (ArrayIndexOutOfBoundsException e) {
-				log.debug(DumpUtil.dump(buff, 0, index - 1), e);
+				log.debug(ByteArrayUtil.toString(buff, 0, buff_size));
 				log.error(e.getMessage(), e);
 				throw new HttpParseException(e);
 			}

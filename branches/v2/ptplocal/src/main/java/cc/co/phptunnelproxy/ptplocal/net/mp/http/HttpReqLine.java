@@ -75,6 +75,9 @@ public class HttpReqLine extends HttpStartLine {
 	}
 
 	public String getAbsDestResource() {
+		if (this.destURL == null) {
+			return null;
+		}
 		return this.destURL.toString();
 	}
 
