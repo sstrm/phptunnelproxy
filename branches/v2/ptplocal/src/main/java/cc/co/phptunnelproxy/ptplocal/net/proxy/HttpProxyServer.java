@@ -95,7 +95,7 @@ class HttpProxyServerThread extends Thread {
 				log.info("visit from browser: "
 						+ browserSocket.getInetAddress().getHostAddress() + " "
 						+ browserSocket.getPort());
-				ThreadPoolService.execute(
+				ThreadPoolService.submit(
 						new HttpProxyProcessThread(browserSocket));
 				log.info("current thread count: " + Thread.activeCount());
 			}
