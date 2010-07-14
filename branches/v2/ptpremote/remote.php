@@ -16,14 +16,19 @@ if($is_ssl == 'true') {
 		$dest_port=80;
 	}
 }
-$request = base64_decode($_POST['request_data']);
+$start_line_data = base64_decode($_POST['start_line_data']);
+$head_data = base64_decode($_POST['head_data']);
+$body_data = base64_decode($_POST['body_data']);
 
 header("Content-type: application/octet-stream");
 $fp = fsockopen($dest_host, $dest_port, $errno, $errstr, 30);
 if (!$fp) {
 	echo "$errstr ($errno)<br />\n";
 } else {
-	fwrite($fp, $request);
+	fwrite($fp, $start_line_data);
+	fwrite($fp, $head_data);
+	fwrite($fp, $body_data);
+	
 	while (!feof($fp)) {
 		$buffer = fread($fp, 1024);
 		$encryped_buffer='';
