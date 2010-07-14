@@ -22,7 +22,9 @@ public class SSLPostMethodProcesser extends PostMethodProcesser {
 	
 	@Override
 	public void process() throws ProxyException {
-		process(destHost, destPort, true);
+		String destUrl = "https://" + destHost + ":" + destPort
+		+ reqLine.getDestResource();
+		process(destUrl, destHost, destPort, true);
 		log.info("ssl post method process done!");
 	}
 

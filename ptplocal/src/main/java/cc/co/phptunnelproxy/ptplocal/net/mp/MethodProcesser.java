@@ -91,19 +91,29 @@ public abstract class MethodProcesser {
 		return mp;
 	}
 
-	protected void requestRemote(byte[] data, String destHost, int destPort,
+	protected void requestRemote(byte[] startLineData, byte[] headData,
+			byte[] bodyData, String destUrl, String destHost, int destPort,
 			boolean isSSL, OutputStream outToBrowser) throws ProxyException {
 
-		log.debug("request data: \n"
-				+ ByteArrayUtil.toString(data, 0, data.length));
+		log.debug("request start line data: \n"
+				+ ByteArrayUtil
+						.toString(startLineData, 0, startLineData.length));
+		log.debug("request head data: \n"
+				+ ByteArrayUtil.toString(headData, 0, headData.length));
+		log.debug("request body data: \n"
+				+ ByteArrayUtil.toString(bodyData, 0, bodyData.length));
 
 		URL remotePhpURL = Config.getIns().getRemotePhpURL();
 		log.info("remotePhp: " + remotePhpURL.toString());
 
 		int key = (int) ((Math.random() * (64)) + 1);
+		// int key = 0;
 
-		byte[] postData = ByteArrayUtil.getBytesFromString("request_data="
-				+ base64urlEncode(data) + "&dest_host="
+		byte[] postData = ByteArrayUtil.getBytesFromString("start_line_data="
+				+ base64urlEncode(startLineData) + "&head_data="
+				+ base64urlEncode(headData) + "&body_data="
+				+ base64urlEncode(bodyData) + "&dest_url="
+				+ base64urlEncode(destUrl) + "&dest_host="
 				+ base64urlEncode(destHost) + "&dest_port=" + destPort
 				+ "&is_ssl=" + isSSL + "&key=" + key);
 

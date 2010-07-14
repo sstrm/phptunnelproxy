@@ -23,7 +23,10 @@ public class SSLGetMethodProcesser extends GetMethodProcesser {
 
 	@Override
 	public void process() throws ProxyException {
-		process(destHost, destPort, true);
+		log.info("ssl get method process begin!");
+		String destUrl = "https://" + destHost + ":" + destPort
+				+ reqLine.getDestResource();
+		process(destUrl, destHost, destPort, true);
 		log.info("ssl get method process done!");
 	}
 
