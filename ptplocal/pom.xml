@@ -21,7 +21,7 @@
 		<repository>
 			<id>PTP</id>
 			<name>PTP Repository</name>
-			<url>http://rep.phptunnelproxy.co.cc/</url>
+			<url>http://rep.phptunnelproxy.co.cc</url>
 		</repository>
 	</repositories>
 
