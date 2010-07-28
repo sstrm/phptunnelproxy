@@ -8,7 +8,7 @@
 	<packaging>jar</packaging>
 
 	<name>ptplocal</name>
-	<url>http://maven.apache.org</url>
+	<url>http://code.google.com/p/phptunnelproxy/</url>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -16,6 +16,14 @@
 		<maven.build.timestamp.format>yyyy-MM-dd HH:mm
 		</maven.build.timestamp.format>
 	</properties>
+
+	<repositories>
+		<repository>
+			<id>PTP</id>
+			<name>PTP Repository</name>
+			<url>http://rep.phptunnelproxy.co.cc/</url>
+		</repository>
+	</repositories>
 
 	<dependencies>
 		<dependency>
@@ -31,6 +39,13 @@
 			<version>4.8.1</version>
 			<type>jar</type>
 			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>${swt.groupId}</groupId>
+			<artifactId>${swt.artifactId}</artifactId>
+			<version>3.6</version>
+			<type>jar</type>
+			<scope>compile</scope>
 		</dependency>
 	</dependencies>
 	<build>
@@ -108,6 +123,42 @@
 					</plugin>
 				</plugins>
 			</build>
+		</profile>
+		<profile>
+			<id>windows</id>
+			<activation>
+				<os>
+					<family>windows</family>
+				</os>
+			</activation>
+			<properties>
+				<swt.groupId>org.eclipse</swt.groupId>
+				<swt.artifactId>swt.win32</swt.artifactId>
+			</properties>
+		</profile>
+		<profile>
+			<id>linux</id>
+			<activation>
+				<os>
+					<family>linux</family>
+				</os>
+			</activation>
+			<properties>
+				<swt.groupId>org.eclipse</swt.groupId>
+				<swt.artifactId>swt.linux</swt.artifactId>
+			</properties>
+		</profile>
+		<profile>
+			<id>mac</id>
+			<activation>
+				<os>
+					<name>mac os x</name>
+				</os>
+			</activation>
+			<properties>
+				<swt.groupId>org.eclipse</swt.groupId>
+				<swt.artifactId>swt.macosx</swt.artifactId>
+			</properties>
 		</profile>
 	</profiles>
 </project>
