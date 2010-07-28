@@ -132,8 +132,8 @@
 				</os>
 			</activation>
 			<properties>
-				<swt.groupId>org.eclipse</swt.groupId>
-				<swt.artifactId>swt.win32</swt.artifactId>
+				<swt.groupId>org.eclipse.swt</swt.groupId>
+				<swt.artifactId>swt-win32</swt.artifactId>
 			</properties>
 		</profile>
 		<profile>
@@ -144,8 +144,8 @@
 				</os>
 			</activation>
 			<properties>
-				<swt.groupId>org.eclipse</swt.groupId>
-				<swt.artifactId>swt.linux</swt.artifactId>
+				<swt.groupId>org.eclipse.swt</swt.groupId>
+				<swt.artifactId>swt-linux</swt.artifactId>
 			</properties>
 		</profile>
 		<profile>
@@ -156,8 +156,8 @@
 				</os>
 			</activation>
 			<properties>
-				<swt.groupId>org.eclipse</swt.groupId>
-				<swt.artifactId>swt.macosx</swt.artifactId>
+				<swt.groupId>org.eclipse.swt</swt.groupId>
+				<swt.artifactId>swt-macosx</swt.artifactId>
 			</properties>
 		</profile>
 	</profiles>
