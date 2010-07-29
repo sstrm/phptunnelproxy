@@ -1,4 +1,4 @@
-package cc.co.phptunnelproxy.ptplocal.ui;
+package cc.co.phptunnelproxy.ptplocal.ui.swing;
 
 import javax.swing.JTextArea;
 import javax.swing.text.BadLocationException;
@@ -37,8 +37,10 @@ public class JTextAreaAppender extends AppenderSkeleton {
 	}
 
 	public JTextAreaAppender() {
+		
 		this.lines = Integer.parseInt(Config.getIns().getValue(
 				"ptp.local.gui.log.lines", "100"));
+				
 	}
 
 	public JTextArea getTextArea() {

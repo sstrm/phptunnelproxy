@@ -106,7 +106,6 @@ class PacProcessThread extends AbstractServerProcessThread {
 		this.browserSocket = browserSocket;
 	}
 
-	@Override
 	public void run() {
 		InputStream inFromBrowser = null;
 		OutputStream outToBrowser = null;
