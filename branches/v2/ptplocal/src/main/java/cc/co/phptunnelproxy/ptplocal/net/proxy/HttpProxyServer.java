@@ -119,7 +119,6 @@ class HttpProxyProcessThread extends AbstractServerProcessThread {
 		this.browserSocket = browserSocket;
 	}
 
-	@Override
 	public void run() {
 		process();
 		try {

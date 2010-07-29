@@ -8,11 +8,10 @@ import org.apache.log4j.Logger;
 
 public abstract class AbstractServerProcessThread implements Runnable {
 
-	public void writeErrorResponse(OutputStream outToBrowser,
-			Exception e, Class<?> clazz) {
+	public void writeErrorResponse(OutputStream outToBrowser, Exception e,
+			Class<?> clazz) {
 		Logger log = Logger.getLogger(clazz);
-		log.error("wirite error page for: " + e.getMessage(),
-				e);
+		log.error("wirite error page for: " + e.getMessage(), e);
 		PrintWriter w = new PrintWriter(new OutputStreamWriter(outToBrowser));
 		w.write("HTTP/1.1 500 Internal Server Error\r\n");
 		w.write("Content-Type: text/html; charset=utf-8\r\n");

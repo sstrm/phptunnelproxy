@@ -26,7 +26,6 @@ public class PipeThread implements Runnable {
 		this.title = title;
 	}
 
-	@Override
 	public void run() {
 			int rc = 0;
 

@@ -1,4 +1,4 @@
-package cc.co.phptunnelproxy.ptplocal.ui;
+package cc.co.phptunnelproxy.ptplocal.ui.swing;
 
 import java.awt.Dimension;
 import java.awt.Frame;
