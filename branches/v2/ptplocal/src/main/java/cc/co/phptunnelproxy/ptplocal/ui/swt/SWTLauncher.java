@@ -17,6 +17,9 @@ import org.eclipse.swt.widgets.TrayItem;
 import cc.co.phptunnelproxy.ptplocal.ui.Launcher;
 
 public class SWTLauncher extends Launcher {
+	
+	private static Logger log = Logger.getLogger(SWTLauncher.class);
+	
 	public static void main(String[] args) {
 		createUI();
 		// promot();
@@ -38,7 +41,7 @@ public class SWTLauncher extends Launcher {
 
 		if (tray == null) {
 
-			System.out.println("can not get tray");
+			log.info("can not get tray");
 
 		} else {
 
