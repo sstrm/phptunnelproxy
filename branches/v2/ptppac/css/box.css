@@ -7,6 +7,11 @@ body {
 	background:url("../img/envelope_bg.gif") repeat-x scroll left top #BED9EB;
 }
 
+a {
+	color:#333333;
+	text-decoration:none;
+}
+
 .container {
 	margin:0 auto;
 	overflow:hidden;
