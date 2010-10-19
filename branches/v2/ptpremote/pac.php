@@ -179,6 +179,11 @@ foreach($gfwlist as $index=>$rule){
 	{
 		$rule_reg=reg_encode($rule);
 	}
+	
+	if(eregi("\|$", $rule_reg))
+	{
+		$rule_reg=substr($rule_reg,0,strlen($rule_reg)-1)."$";
+	}
 	//echo '//'.$rule_reg."\n\t";
 	$js_output.= "\t".'if(/'.$rule_reg.'/i.test(url)) return '.$return_proxy.';'."\n";
 }
