@@ -85,39 +85,39 @@ function get_pac($proxy_type, $proxy_host, $proxy_port) {
 }
 
 function main() {
-	if($_GET['proxy-name']=='free-gate') {
+	if($_GET['proxy_name']=='free-gate') {
 		$proxy_type='PROXY';
 		$proxy_host='127.0.0.1';
 		$proxy_port='8580';
-	}else if($_GET['proxy-name']=='tor') {
+	}else if($_GET['proxy_name']=='tor') {
 		$proxy_type='SOCKS5';
 		$proxy_host='127.0.0.1';
 		$proxy_port='9050';
-	}else if($_GET['proxy-name']=='ssh-d') {
+	}else if($_GET['proxy_name']=='ssh-d') {
 		$proxy_type='SOCKS5';
 		$proxy_host='127.0.0.1';
 		$proxy_port='7070';
-	}else if($_GET['proxy-name']=='gappproxy') {
+	}else if($_GET['proxy_name']=='gappproxy') {
 		$proxy_type='PROXY';
 		$proxy_host='127.0.0.1';
 		$proxy_port='8000';
-	}else if($_GET['proxy-name']=='jap') {
+	}else if($_GET['proxy_name']=='jap') {
 		$proxy_type='PROXY';
 		$proxy_host='127.0.0.1';
 		$proxy_port='4001';
-	}else if($_GET['proxy-name']=='your-freedom') {
+	}else if($_GET['proxy_name']=='your-freedom') {
 		$proxy_type='PROXY';
 		$proxy_host='127.0.0.1';
 		$proxy_port='8080';
-	}else if($_GET['proxy-name']=='puff') {
+	}else if($_GET['proxy_name']=='puff') {
 		$proxy_type='PROXY';
 		$proxy_host='127.0.0.1';
 		$proxy_port='1984';
-	}else if($_GET['proxy-name']=='privoxy') {
+	}else if($_GET['proxy_name']=='privoxy') {
 		$proxy_type='PROXY';
 		$proxy_host='127.0.0.1';
 		$proxy_port='8118';
-	}else if($_GET['proxy-name']=='wu-jie') {
+	}else if($_GET['proxy_name']=='wu-jie') {
 		$proxy_type='PROXY';
 		$proxy_host='127.0.0.1';
 		$proxy_port='9666';
