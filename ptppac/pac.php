@@ -76,6 +76,7 @@ function get_pac($proxy_type, $proxy_host, $proxy_port) {
 	$find_function_content.='return DEFAULT;'."}";
 	
 	$pac_content.='eval(decode64("'.base64_encode($find_function_content).'"));';
+	//$pac_content.=$find_function_content;
 		
 	$pac_content.="\n";
 	
