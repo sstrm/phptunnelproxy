@@ -17,17 +17,17 @@
 						<form action="pac.php" method="get" id="config">
 							<fieldset id="proxy-select">
 								<legend><span>请选择你使用的代理工具</span></legend>
-								<p><label><input type="radio" value="free-gate" name="proxy-name" /> 自由门</label></p>
-								<p><label><input type="radio" value="tor" name="proxy-name" /> Tor</label></p>
-								<p><label><input type="radio" value="ssh-d" name="proxy-name" /> ssh -D / MyEnTunnel</label></p>
-								<p><label><input type="radio" value="gappproxy" name="proxy-name" /> GAppProxy</label></p>
-								<p><label><input type="radio" value="jap" name="proxy-name" /> JAP</label></p>
-								<p><label><input type="radio" value="your-freedom" name="proxy-name" /> Your Freedom</label></p>
-								<p><label><input type="radio" value="puff" name="proxy-name" /> Puff</label></p>
-								<p><label><input type="radio" value="privoxy" name="proxy-name" /> Privoxy + SOCKS</label></p>
-								<p><label><input type="radio" value="wu-jie" name="proxy-name" /> 无界</label></p>
+								<p><label><input type="radio" value="free-gate" name="proxy_name" /> 自由门</label></p>
+								<p><label><input type="radio" value="tor" name="proxy_name" /> Tor</label></p>
+								<p><label><input type="radio" value="ssh-d" name="proxy_name" /> ssh -D / MyEnTunnel</label></p>
+								<p><label><input type="radio" value="gappproxy" name="proxy_name" /> GAppProxy</label></p>
+								<p><label><input type="radio" value="jap" name="proxy_name" /> JAP</label></p>
+								<p><label><input type="radio" value="your-freedom" name="proxy_name" /> Your Freedom</label></p>
+								<p><label><input type="radio" value="puff" name="proxy_name" /> Puff</label></p>
+								<p><label><input type="radio" value="privoxy" name="proxy_name" /> Privoxy + SOCKS</label></p>
+								<p><label><input type="radio" value="wu-jie" name="proxy_name" /> 无界</label></p>
 								<p>
-									<label><input type="radio" value="custom" name="proxy-name" checked="checked"/> 其它</label>
+									<label><input type="radio" value="custom" name="proxy_name" checked="checked"/> 其它</label>
 									<span id="proxy-input">
 										<select name="proxy_type">
 											<option value="http">HTTP</option>
