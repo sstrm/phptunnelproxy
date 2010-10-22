@@ -2,5 +2,6 @@
 RewriteEngine On
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule .*/pac/(.*)/(.*)/(.*)/(.*)/ pac.php?proxy-name={$1}&proxy_type={$2}&proxy_host={$3}&proxy_port={$4}
+RewriteRule pac/(.*)/(.*)/(.*)/(.*)/ pac.php?proxy_name=$1&proxy_type=$2&proxy_host=$3&proxy_port=$4
+RewriteRule pac/(.*)/ pac.php?proxy_name=$1
 </IfModule>
