@@ -5,6 +5,7 @@
 		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 		<link rel="stylesheet" href="css/box.css" type="text/css" media="screen" />
 		<script type="text/javascript" src="js/jquery-1.4.3.min.js"></script>
+		<script type="text/javascript" src="js/ptppac.js"></script>
 		<title>PTP GFWLIST2PAC</title>
 	</head>
 	<body>
@@ -39,18 +40,19 @@
 									</span>
 								</p>
 							</fieldset>
-							<button name="get-pac" value="pac">获取PAC</button>
+							<button name="get-pac" value="pac" onclick="insert_pac_url()">获取PAC</button>
 						</form>
+						<div id="pac-url"></div>
 					</div>
 				</div>
 			<div class="bottom">
-				<a href="">PTP</a>
+				<a href="http://code.google.com/p/phptunnelproxy/">PTP</a>
 				<span>|</span>
-				<a href="">GFWLIST</a>
+				<a href="http://code.google.com/p/autoproxy-gfwlist/">GFWLIST</a>
 				<span>|</span>
-				<a href="">Autoproxy</a>
+				<a href="http://autoproxy.org/">Autoproxy</a>
 				<span>|</span>
-				<a href="">Autoproxy2pac</a>
+				<a href="http://autoproxy2pac.appspot.com/">Autoproxy2pac</a>
 			</div>
 		</div>
 	<div class="footer"></div>

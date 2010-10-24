@@ -1,21 +1,21 @@
 @CHARSET "UTF-8";
 
 body {
-	font-family:'Lucida Grande',Tahoma,Arial,'Microsoft YaHei',STHeiTi,simsun,sans-serif;
-	font-size:10pt;
-	color:#444444;
-	background:url("../img/envelope_bg.gif") repeat-x scroll left top #BED9EB;
+	font-family: 'Helvetica Neue', Arial, Helvetica, STHeiti, 'Microsoft YaHei', simsun, sans-serif;
+	font-size: 10pt;
+	color: #444444;
+	background: url("../img/envelope_bg.gif") repeat-x scroll left top #BED9EB;
 }
 
 a {
-	color:#333333;
-	text-decoration:none;
+	color: #333333;
+	text-decoration: none;
 }
 
 .container {
-	margin:0 auto;
-	overflow:hidden;
-	width:800px;
+	margin: 0 auto;
+	overflow: hidden;
+	width: 800px;
 }
 
 .content {
@@ -30,17 +30,17 @@ a {
 }
 
 #config {
-	padding:30px 40px;
+	padding: 30px 40px;
 	margin:0 auto;
 }
 
 #config fieldset {
-	border:medium none;
-	padding:5px 0;
+	border: medium none;
+	padding: 5px 0;
 }
 
 #config p {
-	margin:3px 0;	
+	margin: 3px 0;	
 }
 
 #config button {
@@ -56,8 +56,13 @@ a {
     border-radius: 6px; /* Opera 10.5, IE 9 */
 }
 
+.bottom {
+	text-align: center;
+	font-size: 0.8em;
+}
+
 .footer {
 	margin:0 auto;
-	overflow:hidden;
-	width:960px;
+	overflow: hidden;
+	width: 960px;
 }
