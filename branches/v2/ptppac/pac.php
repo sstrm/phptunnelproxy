@@ -14,6 +14,7 @@ function reg_encode($str) {
 	$tmp_str=str_replace('-', "\\-", $tmp_str);
 	$tmp_str=str_replace('&', "\\&", $tmp_str);
 	$tmp_str=str_replace('?', "\\?", $tmp_str);
+	$tmp_str=str_replace('+', "\\+", $tmp_str);
 	
 	return $tmp_str;
 }
